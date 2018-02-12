@@ -10,7 +10,7 @@ type StartLoginAction = {
 
 type LoginSuccessfulAction = {
   type: 'LOGIN_SUCCESSFUL',
-  expiry: string,
+  expiry?: string,
 };
 
 type LoginFailedAction = {
@@ -36,13 +36,19 @@ type UpdateAccountHistoryAction = {
   accountHistory: Array<AccountToken>,
 };
 
+type UpdateExpiryAction = {
+  type: 'UPDATE_EXPIRY',
+  expiry: string,
+};
+
 export type AccountAction = StartLoginAction
                             | LoginSuccessfulAction
                             | LoginFailedAction
                             | LoggedOutAction
                             | ResetLoginErrorAction
                             | UpdateAccountTokenAction
-                            | UpdateAccountHistoryAction;
+                            | UpdateAccountHistoryAction
+                            | UpdateExpiryAction;
 
 function startLogin(accountToken?: AccountToken): StartLoginAction {
   return {
@@ -51,7 +57,7 @@ function startLogin(accountToken?: AccountToken): StartLoginAction {
   };
 }
 
-function loginSuccessful(expiry: string): LoginSuccessfulAction {
+function loginSuccessful(expiry?: string): LoginSuccessfulAction {
   return {
     type: 'LOGIN_SUCCESSFUL',
     expiry: expiry,
@@ -95,6 +101,13 @@ function updateAccountHistory(accountHistory: Array<AccountToken>): UpdateAccoun
   };
 }
 
+function updateExpiry(expiry: string): UpdateExpiryAction {
+  return {
+    type: 'UPDATE_EXPIRY',
+    expiry: expiry,
+  };
+}
+
 const login = (backend: Backend, account: string) => () => backend.login(account);
 const logout = (backend: Backend) => () => backend.logout();
 
@@ -109,4 +122,5 @@ export default {
   resetLoginError,
   updateAccountToken,
   updateAccountHistory,
+  updateExpiry,
 };

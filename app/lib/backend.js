@@ -149,6 +149,12 @@ export class Backend {
       log.error('Failed to fetch the LAN sharing policy: ', e.message);
     }
 
+    try {
+      await this._updateAccountData();
+    } catch(e) {
+      log.error('Failed updating the account data: ', e.message);
+    }
+
     await this._fetchAccountHistory();
   }
 
@@ -229,10 +235,7 @@ export class Backend {
       log.debug('The backend had an account number stored: ', accountToken);
       this._store.dispatch(accountActions.startLogin(accountToken));
 
-      const accountData = await this._ipc.getAccountData(accountToken);
-      log.debug('The stored account number still exists', accountData);
-
-      this._store.dispatch(accountActions.loginSuccessful(accountData.expiry));
+      this._store.dispatch(accountActions.loginSuccessful());
       this._store.dispatch(push('/connect'));
     } catch (e) {
       log.warn('Unable to autologin,', e.message);
@@ -436,6 +439,20 @@ export class Backend {
     this._store.dispatch(
       settingsActions.updateAllowLan(allowLan)
     );
+  }
+
+  async _updateAccountData() {
+    await this._ensureAuthenticated();
+
+    const { accountToken } = this._store.getState().account;
+    if (accountToken) {
+      const accountData = await this._ipc.getAccountData(accountToken);
+      this._store.dispatch(
+        accountActions.updateExpiry(accountData.expiry)
+      );
+    } else {
+      log.debug('Not updating the account data because no token was set in the store');
+    }
   }
 
   async fetchSecurityState() {

@@ -29,7 +29,7 @@ export default function(state: AccountReduxState = initialState, action: ReduxAc
   case 'START_LOGIN':
     return { ...state, ...{
       status: 'logging in',
-      accountToken: action.accountToken,
+      accountToken: action.accountToken || null,
       error: null,
     }};
   case 'LOGIN_SUCCESSFUL':
@@ -64,6 +64,8 @@ export default function(state: AccountReduxState = initialState, action: ReduxAc
     return { ...state, ...{
       accountHistory: action.accountHistory,
     }};
+  case 'UPDATE_EXPIRY':
+    return { ...state, expiry: action.expiry };
   }
 
   return state;
