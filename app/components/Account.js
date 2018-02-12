@@ -23,8 +23,6 @@ export default class Account extends Component {
   render() {
     const expiry = moment(this.props.account.expiry);
     const formattedAccountToken = formatAccount(this.props.account.accountToken || '');
-    const formattedExpiry = expiry.format('hA, D MMMM YYYY').toUpperCase();
-    const isOutOfTime = expiry.isSameOrBefore(moment());
 
     return (
       <Layout>
@@ -52,11 +50,7 @@ export default class Account extends Component {
 
                   <View style={styles.account__row}>
                     <Text style={styles.account__row_label}>Paid until</Text>
-                    { isOutOfTime ?
-                      <Text style={styles.account__out_of_time} testName='account__out_of_time'>OUT OF TIME</Text>
-                      :
-                      <Text style={styles.account__row_value}>{ formattedExpiry }</Text>
-                    }
+                    { this._renderTime() }
                   </View>
 
                   <View style={styles.account__footer}>
@@ -82,5 +76,22 @@ export default class Account extends Component {
         </Container>
       </Layout>
     );
+  }
+
+  _renderTime() {
+    const { expiry: rawExpiry } = this.props.account;
+
+    const isUnknown = rawExpiry === null || rawExpiry === undefined;
+    if (isUnknown) {
+      return <Text style={styles.account__row_value}>UNKNOWN</Text>
+    }
+
+    const expiry = moment(rawExpiry);
+    const isOutOfTime = expiry.isSameOrBefore(moment());
+    if (isOutOfTime) {
+      return <Text style={styles.account__out_of_time} testName='account__out_of_time'>OUT OF TIME</Text>
+    }
+
+    return <Text style={styles.account__row_value}>{  expiry.format('hA, D MMMM YYYY').toUpperCase() }</Text>
   }
 }
