@@ -11,6 +11,7 @@ use std::io::{self, Write};
 use std::net::Ipv4Addr;
 use std::path::{Path, PathBuf};
 
+use talpid_types::AuthFailedReason;
 use talpid_types::net::{Endpoint, TunnelEndpoint, TunnelParameters};
 
 /// A module for all OpenVPN related tunnel management.
@@ -54,6 +55,8 @@ pub enum TunnelEvent {
     Up(TunnelMetadata),
     /// Sent when the tunnel goes down.
     Down,
+    /// Sent when the remote denies access
+    AuthFailed(AuthFailedReason),
 }
 
 /// Information about a VPN tunnel.
@@ -95,6 +98,10 @@ impl TunnelEvent {
                 }))
             }
             OpenVpnPluginEvent::RoutePredown => Some(TunnelEvent::Down),
+            OpenVpnPluginEvent::AuthFailed => {
+                let cause = args.first().map(|a| a.to_owned());
+                Some(TunnelEvent::AuthFailed(AuthFailedReason::parse(cause)))
+            },
             _ => None,
         }
     }

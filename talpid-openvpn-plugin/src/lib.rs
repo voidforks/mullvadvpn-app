@@ -48,7 +48,7 @@ error_chain!{
 /// All the OpenVPN events this plugin will register for listening to. Edit this variable to change
 /// events.
 pub static INTERESTING_EVENTS: &'static [OpenVpnPluginEvent] =
-    &[OpenVpnPluginEvent::Up, OpenVpnPluginEvent::RoutePredown];
+    &[OpenVpnPluginEvent::Up, OpenVpnPluginEvent::RoutePredown, OpenVpnPluginEvent::AuthFailed];
 
 openvpn_plugin!(
     ::openvpn_open,

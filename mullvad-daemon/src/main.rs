@@ -347,6 +347,9 @@ impl Daemon {
                 self.tunnel_metadata = Some(metadata);
                 self.set_security_policy()?;
                 self.set_state(TunnelState::Connected)
+            } else if let TunnelEvent::AuthFailed(cause) = tunnel_event {
+                debug!("Auth failed");
+                Ok(())
             } else {
                 Ok(())
             }
@@ -560,6 +563,7 @@ impl Daemon {
             state: self.state.as_security_state(),
             target_state: self.target_state,
         };
+
         if self.last_broadcasted_state != new_daemon_state {
             self.last_broadcasted_state = new_daemon_state;
             self.management_interface_broadcaster
