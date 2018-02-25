@@ -15,7 +15,7 @@ log = "0.4"
 uuid = { version = "0.5", features = ["v4"] }
 shell-escape = "0.1"
 
-openvpn-plugin = { version = "0.3", features = ["serde"] }
+openvpn-plugin = { path = "../../openvpn-plugin-rs", features = ["serde"] }
 talpid-ipc = { path = "../talpid-ipc" }
 talpid-types = { path = "../talpid-types" }
 
