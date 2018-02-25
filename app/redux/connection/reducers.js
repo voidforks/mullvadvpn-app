@@ -2,8 +2,9 @@
 
 import type { ReduxAction } from '../store';
 import type { Ip } from '../../lib/ipc-facade';
+import type { BackendError } from '../../lib/backend';
 
-export type ConnectionState = 'disconnected' | 'connecting' | 'connected';
+export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | BackendError;
 export type ConnectionReduxState = {
   status: ConnectionState,
   isOnline: boolean,
@@ -39,6 +40,9 @@ export default function(state: ConnectionReduxState = initialState, action: Redu
 
   case 'DISCONNECTED':
     return { ...state, ...{ status: 'disconnected' }};
+
+  case 'ERROR':
+    return { ...state, ...{ status: action.error }};
 
   case 'ONLINE':
     return { ...state, ...{ isOnline: true }};

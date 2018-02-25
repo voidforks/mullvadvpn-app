@@ -87,6 +87,7 @@ export default class Connect extends React.Component<ConnectProps, ConnectState>
           <div className="connect__error-message">
             { error.message }
           </div>
+
           { error.type === 'NO_CREDIT' ?
             <div>
               <button className="button button--positive" onClick={ this.onExternalLink.bind(this, 'purchase') }>
@@ -305,6 +306,11 @@ export default class Connect extends React.Component<ConnectProps, ConnectState>
     case 'connected':
       return 'success';
     }
+
+    if (this.props.connection.status instanceof Error) {
+      return 'error';
+    }
+
     throw new Error('Invalid ConnectionState');
   }
 
@@ -353,6 +359,11 @@ export default class Connect extends React.Component<ConnectProps, ConnectState>
     const expiry = this.props.accountExpiry;
     if(expiry && moment(expiry).isSameOrBefore(moment())) {
       return new BackendError('NO_CREDIT');
+    }
+
+    // Other error?
+    if(this.props.connection.status instanceof Error) {
+      return this.props.connection.status;
     }
 
     return null;

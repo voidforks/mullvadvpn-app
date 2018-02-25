@@ -41,6 +41,8 @@ export class BackendError extends Error {
   static localizedMessage(type: ErrorType, cause: ?Error): string {
 
     switch(type) {
+    case 'AUTH_FAILED':
+      return 'An unknown authentication failure occurred';
     case 'NO_CREDIT':
       return 'Buy more time, so you can continue using the internet securely';
     case 'NO_INTERNET':
@@ -166,17 +168,22 @@ export class Backend {
     try {
       await this._ensureAuthenticated();
 
-      const accountData = await this._ipc.getAccountData(accountToken);
+      try {
+        const accountData = await this._ipc.getAccountData(accountToken);
+        log.debug('Account exists', accountData);
+        await this._ipc.setAccount(accountToken);
+        this._store.dispatch(
+          accountActions.loginSuccessful(accountData.expiry)
+        );
 
-      log.debug('Account exists', accountData);
+      } catch (e) {
+        log.warn('Unable to verify that the account exists, will login anyway since it might be related to api.mullvad.net being blocked', e);
 
-      await this._ipc.setAccount(accountToken);
+        await this._ipc.setAccount(accountToken);
+        this._store.dispatch(accountActions.loginSuccessful());
+      }
 
       log.info('Log in complete');
-
-      this._store.dispatch(
-        accountActions.loginSuccessful(accountData.expiry)
-      );
       await this.fetchRelaySettings();
 
       // Redirect the user after some time to allow for
@@ -493,8 +500,14 @@ export class Backend {
     this._ipc.registerStateListener(newState => {
       log.debug('Got new state from backend', newState);
 
-      const newStatus = this._securityStateToConnectionState(newState);
-      this._dispatchConnectionState(newStatus);
+      const error = this._checkForConnectionError(newState);
+      if (error) {
+        this._store.dispatch(connectionActions.error(error));
+      } else {
+        const newStatus = this._securityStateToConnectionState(newState);
+        this._dispatchConnectionState(newStatus);
+      }
+
       this.sync();
     });
   }
@@ -508,6 +521,29 @@ export class Backend {
       return 'disconnected';
     }
     throw new Error('Unsupported state/target state combination: ' + JSON.stringify(backendState));
+  }
+
+  _checkForConnectionError(backendState: BackendState) {
+    const wasAuthFailed = backendState.cause.hasOwnProperty('auth_failed');
+    if (!wasAuthFailed) {
+      return null;
+    }
+
+
+    const failReason = backendState.cause.auth_failed.toLowerCase();
+    if (failReason === 'unknown') {
+      return new BackendError('AUTH_FAILED');
+    }
+
+    if (failReason === 'invalid_token') {
+      return new BackendError('INVALID_ACCOUNT');
+    }
+
+    if (failReason === 'out_of_time') {
+      return new BackendError('NO_CREDIT');
+    }
+
+    return null;
   }
 
   _dispatchConnectionState(connectionState: ConnectionState) {
