@@ -26,11 +26,12 @@ impl EventProcessor {
     pub fn process_event(
         &mut self,
         event: openvpn_plugin::types::OpenVpnPluginEvent,
+        args: Vec<String>,
         env: HashMap<String, String>,
     ) -> Result<()> {
         trace!("Processing \"{:?}\" event", event);
         self.ipc_client
-            .call("openvpn_event", &(event, env))
+            .call("openvpn_event", &(event, args, env))
             .map(|_: Option<()>| ())
             .chain_err(|| ErrorKind::IpcSendingError)
     }

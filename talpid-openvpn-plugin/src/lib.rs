@@ -89,17 +89,18 @@ fn openvpn_close(_handle: EventProcessor) {
 
 fn openvpn_event(
     event: OpenVpnPluginEvent,
-    _args: Vec<CString>,
+    args: Vec<CString>,
     env: HashMap<CString, CString>,
     handle: &mut EventProcessor,
 ) -> Result<EventResult> {
     debug!("Received event: {:?}", event);
 
+    let parsed_args = openvpn_plugin::ffi::parse::string_array_utf8(&args).chain_err(|| ErrorKind::ParseArgsFailed)?;
     let parsed_env =
         openvpn_plugin::ffi::parse::env_utf8(&env).chain_err(|| ErrorKind::ParseEnvFailed)?;
 
     handle
-        .process_event(event, parsed_env)
+        .process_event(event, parsed_args, parsed_env)
         .chain_err(|| ErrorKind::EventProcessingFailed)?;
     Ok(EventResult::Success)
 }

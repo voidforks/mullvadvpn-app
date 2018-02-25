@@ -50,7 +50,7 @@ impl OpenVpnMonitor<OpenVpnCommand> {
     /// path.
     pub fn new<L, P>(cmd: OpenVpnCommand, on_event: L, plugin_path: P) -> Result<Self>
     where
-        L: Fn(OpenVpnPluginEvent, HashMap<String, String>) + Send + Sync + 'static,
+        L: Fn(OpenVpnPluginEvent, Vec<String>, HashMap<String, String>) + Send + Sync + 'static,
         P: AsRef<Path>,
     {
         Self::new_internal(cmd, on_event, plugin_path)
@@ -60,7 +60,7 @@ impl OpenVpnMonitor<OpenVpnCommand> {
 impl<C: OpenVpnBuilder> OpenVpnMonitor<C> {
     fn new_internal<L, P>(mut cmd: C, on_event: L, plugin_path: P) -> Result<OpenVpnMonitor<C>>
     where
-        L: Fn(OpenVpnPluginEvent, HashMap<String, String>) + Send + Sync + 'static,
+        L: Fn(OpenVpnPluginEvent, Vec<String>, HashMap<String, String>) + Send + Sync + 'static,
         P: AsRef<Path>,
     {
         let event_dispatcher =
@@ -233,7 +233,7 @@ mod event_server {
     /// Construct and start the IPC server with the given event listener callback.
     pub fn start<L>(on_event: L) -> talpid_ipc::Result<talpid_ipc::IpcServer>
     where
-        L: Fn(OpenVpnPluginEvent, HashMap<String, String>) + Send + Sync + 'static,
+        L: Fn(OpenVpnPluginEvent, Vec<String>, HashMap<String, String>) + Send + Sync + 'static,
     {
         let rpc = OpenVpnEventApiImpl { on_event };
         let mut io = IoHandler::new();
@@ -244,7 +244,7 @@ mod event_server {
     build_rpc_trait! {
         pub trait OpenVpnEventApi {
             #[rpc(name = "openvpn_event")]
-            fn openvpn_event(&self, OpenVpnPluginEvent, HashMap<String, String>)
+            fn openvpn_event(&self, OpenVpnPluginEvent, Vec<String>, HashMap<String, String>)
                 -> Result<(), Error>;
         }
     }
@@ -255,15 +255,16 @@ mod event_server {
 
     impl<L> OpenVpnEventApi for OpenVpnEventApiImpl<L>
     where
-        L: Fn(OpenVpnPluginEvent, HashMap<String, String>) + Send + Sync + 'static,
+        L: Fn(OpenVpnPluginEvent, Vec<String>, HashMap<String, String>) + Send + Sync + 'static,
     {
         fn openvpn_event(
             &self,
             event: OpenVpnPluginEvent,
+            args: Vec<String>,
             env: HashMap<String, String>,
         ) -> Result<(), Error> {
             trace!("OpenVPN event {:?}", event);
-            (self.on_event)(event, env);
+            (self.on_event)(event, args, env);
             Ok(())
         }
     }

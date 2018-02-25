@@ -72,6 +72,7 @@ impl TunnelEvent {
     /// Returns `None` if there is no corresponding `TunnelEvent`.
     fn from_openvpn_event(
         event: &OpenVpnPluginEvent,
+        args: &Vec<String>,
         env: &HashMap<String, String>,
     ) -> Option<TunnelEvent> {
         match *event {
@@ -98,7 +99,6 @@ impl TunnelEvent {
         }
     }
 }
-
 
 /// Abstraction for monitoring a generic VPN tunnel.
 pub struct TunnelMonitor {
@@ -134,12 +134,12 @@ impl TunnelMonitor {
         );
 
         let user_pass_file_path = user_pass_file.to_path_buf();
-        let on_openvpn_event = move |event, env| {
+        let on_openvpn_event = move |event, args, env| {
             if event == OpenVpnPluginEvent::Up {
                 // The user-pass file has been read. Try to delete it early.
                 let _ = fs::remove_file(&user_pass_file_path);
             }
-            match TunnelEvent::from_openvpn_event(&event, &env) {
+            match TunnelEvent::from_openvpn_event(&event, &args, &env) {
                 Some(tunnel_event) => on_event(tunnel_event),
                 None => debug!("Ignoring OpenVpnEvent {:?}", event),
             }
