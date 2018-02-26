@@ -143,7 +143,16 @@ impl PacketFilter {
                     rules.append(&mut Self::get_allow_lan_rules()?);
                 }
                 Ok(rules)
-            }
+            },
+            SecurityPolicy::Blocking {
+                allow_lan,
+            } => {
+                let mut rules = vec![];
+                if allow_lan {
+                    rules.append(&mut Self::get_allow_lan_rules()?);
+                }
+                Ok(rules)
+            },
         }
     }
 

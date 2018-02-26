@@ -23,8 +23,11 @@ impl Command for Status {
         match (state.state, state.target_state) {
             (SecurityState::Unsecured, TargetState::Unsecured) => println!("Disconnected"),
             (SecurityState::Unsecured, TargetState::Secured) => println!("Connecting..."),
+            (SecurityState::Unsecured, TargetState::Blocking) => println!("Blocking..."),
+
             (SecurityState::Secured, TargetState::Unsecured) => println!("Disconnecting..."),
             (SecurityState::Secured, TargetState::Secured) => println!("Connected"),
+            (SecurityState::Secured, TargetState::Blocking) => println!("Disconnecting but blocking..."),
         }
 
         let location: GeoIpLocation = rpc::call("get_current_location", &[] as &[u8; 0])?;

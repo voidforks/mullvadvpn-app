@@ -612,6 +612,9 @@ impl Daemon {
                 }
                 Ok(())
             }
+            (TargetState::Blocking, _) => {
+                self.set_security_policy()
+            }
             (TargetState::Unsecured, TunnelState::NotRunning) => self.reset_security_policy(),
             (TargetState::Unsecured, TunnelState::Connecting)
             | (TargetState::Unsecured, TunnelState::Connected) => self.kill_tunnel(),
@@ -746,7 +749,12 @@ impl Daemon {
                 tunnel: tunnel_metadata.clone(),
                 allow_lan: self.settings.get_allow_lan(),
             },
-            _ => bail!(ErrorKind::InvalidState),
+            (None, None) => SecurityPolicy::Blocking {
+                allow_lan: self.settings.get_allow_lan(),
+            },
+            _ => {
+                bail!(ErrorKind::InvalidState)
+            },
         };
         debug!("Set security policy: {:?}", policy);
         self.firewall

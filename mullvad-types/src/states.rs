@@ -25,4 +25,5 @@ pub enum SecurityState {
 pub enum TargetState {
     Unsecured,
     Secured,
+    Blocking,
 }
