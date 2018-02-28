@@ -26,10 +26,10 @@ ipcRenderer.on('backend-info', async (_event, args) => {
   backend.setCredentials(args.credentials);
   backend.sync();
   try {
-    await backend.autologin();
+    //await backend.autologin();
     await backend.fetchRelaySettings();
     await backend.fetchSecurityState();
-    await backend.connect();
+    //await backend.connect();
   } catch (e) {
     if(e instanceof BackendError) {
       if(e.type === 'NO_ACCOUNT') {
