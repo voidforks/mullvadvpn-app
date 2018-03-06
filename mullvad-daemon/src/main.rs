@@ -347,8 +347,13 @@ impl Daemon {
                 self.tunnel_metadata = Some(metadata);
                 self.set_security_policy()?;
                 self.set_state(TunnelState::Connected)
+
             } else if let TunnelEvent::AuthFailed(cause) = tunnel_event {
-                debug!("Auth failed");
+
+                if let Err(e) = self.set_target_state(TargetState::Blocking) {
+                    warn!("Unable to enter the blocking state, {}", e);
+                }
+
                 Ok(())
             } else {
                 Ok(())
