@@ -78,6 +78,7 @@ use std::time::{Duration, Instant};
 use talpid_core::firewall::{Firewall, FirewallProxy, SecurityPolicy};
 use talpid_core::mpsc::IntoSender;
 use talpid_core::tunnel::{self, TunnelEvent, TunnelMetadata, TunnelMonitor};
+use talpid_types::AuthFailedReason;
 use talpid_types::net::TunnelEndpoint;
 
 use std::fs;
@@ -107,6 +108,9 @@ error_chain!{
         }
         NoRelay {
             description("Found no valid relays to connect to")
+        }
+        NoAccountToken {
+            description("No account token was set")
         }
     }
 }
@@ -356,7 +360,19 @@ impl Daemon {
 
             } else if let TunnelEvent::AuthFailed(cause) = tunnel_event {
 
-                self.tunnel_exit_cause = TunnelExitCause::AuthFailed(cause);
+                let refined_cause = if cause == AuthFailedReason::Unknown {
+                    match self.attempt_to_find_auth_failed_reason() {
+                        Ok(c) => c,
+                        Err(e) => {
+                            warn!("Failed finding the auth failed reason, {}", e);
+                            AuthFailedReason::Unknown
+                        }
+                    }
+                } else {
+                   cause
+                };
+
+                self.tunnel_exit_cause = TunnelExitCause::AuthFailed(refined_cause);
 
                 if let Err(e) = self.set_target_state(TargetState::Blocking) {
                     warn!("Unable to enter the blocking state, {}", e);
@@ -372,6 +388,38 @@ impl Daemon {
         } else {
             Ok(())
         }
+    }
+
+    fn attempt_to_find_auth_failed_reason(&mut self) -> Result<talpid_types::AuthFailedReason> {
+        let account_token = self.settings.get_account_token().ok_or(ErrorKind::NoAccountToken)?;
+
+        let expiry_res = self.accounts_proxy
+            .get_expiry(account_token)
+            .call();
+
+        match expiry_res {
+            Ok(expiry) => if expiry < ::chrono::Utc::now() {
+                    Ok(AuthFailedReason::OutOfTime)
+                } else {
+                    // The account seems valid, we should not end up here too often.
+                    Ok(AuthFailedReason::Unknown)
+                }
+            Err(mullvad_rpc::Error(mullvad_rpc::ErrorKind::JsonRpcError(e), _)) => {
+
+                if e.code.code() == -200 {
+                    // -200 is a magic error number indicating that the account
+                    // doesn't exist. This is defined somewhere in the api.
+                    Ok(AuthFailedReason::InvalidAccountToken)
+                } else {
+                    Ok(AuthFailedReason::Unknown)
+                }
+            }
+            Err(e) => {
+                warn!("Unable to find the auth failed reason: {}", e);
+                Ok(AuthFailedReason::Unknown)
+            }
+        }
+
     }
 
     fn handle_tunnel_exited(&mut self, result: tunnel::Result<()>) -> Result<()> {
