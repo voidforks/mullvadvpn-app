@@ -65,6 +65,7 @@ use mullvad_types::location::GeoIpLocation;
 use mullvad_types::relay_constraints::{RelaySettings, RelaySettingsUpdate};
 use mullvad_types::relay_list::{Relay, RelayList};
 use mullvad_types::states::{DaemonState, SecurityState, TargetState};
+use mullvad_types::TunnelExitCause;
 
 use std::env;
 use std::io;
@@ -184,6 +185,7 @@ struct Daemon {
     tunnel_close_handle: Option<tunnel::CloseHandle>,
     last_broadcasted_state: DaemonState,
     target_state: TargetState,
+    tunnel_exit_cause: TunnelExitCause,
     shutdown: bool,
     rx: mpsc::Receiver<DaemonEvent>,
     tx: mpsc::Sender<DaemonEvent>,
@@ -232,7 +234,9 @@ impl Daemon {
             last_broadcasted_state: DaemonState {
                 state: state.as_security_state(),
                 target_state,
+                cause: TunnelExitCause::None,
             },
+            tunnel_exit_cause: TunnelExitCause::None,
             shutdown: false,
             rx,
             tx,
@@ -342,7 +346,9 @@ impl Daemon {
 
     fn handle_tunnel_event(&mut self, tunnel_event: TunnelEvent) -> Result<()> {
         debug!("Tunnel event: {:?}", tunnel_event);
+
         if self.state == TunnelState::Connecting {
+
             if let TunnelEvent::Up(metadata) = tunnel_event {
                 self.tunnel_metadata = Some(metadata);
                 self.set_security_policy()?;
@@ -350,11 +356,14 @@ impl Daemon {
 
             } else if let TunnelEvent::AuthFailed(cause) = tunnel_event {
 
+                self.tunnel_exit_cause = TunnelExitCause::AuthFailed(cause);
+
                 if let Err(e) = self.set_target_state(TargetState::Blocking) {
                     warn!("Unable to enter the blocking state, {}", e);
                 }
 
                 Ok(())
+
             } else {
                 Ok(())
             }
@@ -567,7 +576,10 @@ impl Daemon {
         let new_daemon_state = DaemonState {
             state: self.state.as_security_state(),
             target_state: self.target_state,
+            cause: self.tunnel_exit_cause,
         };
+
+        self.tunnel_exit_cause = TunnelExitCause::None;
 
         if self.last_broadcasted_state != new_daemon_state {
             self.last_broadcasted_state = new_daemon_state;
@@ -608,6 +620,7 @@ impl Daemon {
         match (self.target_state, self.state) {
             (TargetState::Secured, TunnelState::NotRunning) => {
                 debug!("Triggering tunnel start");
+
                 if let Err(e) = self.start_tunnel().chain_err(|| "Failed to start tunnel") {
                     error!("{}", e.display_chain());
                     self.current_relay = None;

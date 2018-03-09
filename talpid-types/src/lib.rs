@@ -10,3 +10,6 @@
 extern crate serde_derive;
 
 pub mod net;
+
+mod auth_failed_reason;
+pub use auth_failed_reason::*;

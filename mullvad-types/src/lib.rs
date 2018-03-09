@@ -27,3 +27,6 @@ pub mod states;
 
 mod custom_tunnel;
 pub use custom_tunnel::*;
+
+mod tunnel_exit_cause;
+pub use tunnel_exit_cause::*;

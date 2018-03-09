@@ -1,7 +1,10 @@
+use tunnel_exit_cause::TunnelExitCause;
+
 #[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct DaemonState {
     pub state: SecurityState,
     pub target_state: TargetState,
+    pub cause: TunnelExitCause,
 }
 
 /// Security state of the computer.
