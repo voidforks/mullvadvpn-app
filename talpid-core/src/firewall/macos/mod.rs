@@ -86,7 +86,14 @@ impl PacketFilter {
                 relay_endpoint,
                 allow_lan,
             } => {
-                let mut rules = vec![Self::get_allow_relay_rule(relay_endpoint)?];
+                let mut rules = vec![
+                    Self::get_allow_relay_rule(relay_endpoint)?,
+
+                    // Assuming the rules to reach master are the same as a relay
+                    Self::get_allow_relay_rule(net::Endpoint::new(
+                        [193, 138, 219, 46], 80, net::TransportProtocol::Tcp
+                    ))?,
+                ];
                 if allow_lan {
                     rules.append(&mut Self::get_allow_lan_rules()?);
                 }
