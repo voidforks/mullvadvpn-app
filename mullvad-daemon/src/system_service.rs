@@ -18,7 +18,7 @@ use windows_service::service_control_handler::{
 use windows_service::service_dispatcher;
 use windows_service::service_manager::{ServiceManager, ServiceManagerAccess};
 
-use super::{DaemonShutdownHandle, Result, ResultExt};
+use super::{DaemonShutdownHandle, ErrorKind, Result, ResultExt};
 
 static SERVICE_NAME: &'static str = "MullvadVPN";
 static SERVICE_DISPLAY_NAME: &'static str = "Mullvad VPN Service";
@@ -42,18 +42,31 @@ pub fn handle_service_main(arguments: Vec<OsString>) {
     };
 }
 
-fn run_service(_arguments: Vec<OsString>) -> Result<()> {
-    let (event_tx, event_rx) = mpsc::channel();
+struct ServiceShutdownHandle {
+    persistent_service_status: PersistentServiceStatus,
+    shutdown_handle: DaemonShutdownHandle,
+}
 
+fn run_service(_arguments: Vec<OsString>) -> Result<()> {
+    let (shutdown_handle_tx, shutdown_handle_rx) = mpsc::channel::<ServiceShutdownHandle>();
+
+    let mut service_shutdown_handle: Option<ServiceShutdownHandle> = None;
     // Register service event handler
     let event_handler = move |control_event| -> ServiceControlHandlerResult {
+        if service_shutdown_handle.is_none() {
+            service_shutdown_handle = Some(shutdown_handle_rx.recv().unwrap());
+        }
+        let service_shutdown_handle_ref = service_shutdown_handle.as_mut().unwrap();
         match control_event {
             // Notifies a service to report its current status information to the service
             // control manager. Always return NO_ERROR even if not implemented.
             ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
 
             ServiceControl::Stop | ServiceControl::Preshutdown => {
-                event_tx.send(control_event).unwrap();
+                let _ = service_shutdown_handle_ref
+                    .persistent_service_status
+                    .set_pending_stop(Duration::from_secs(10));
+                service_shutdown_handle_ref.shutdown_handle.shutdown();
                 ServiceControlHandlerResult::NoError
             }
 
@@ -63,16 +76,16 @@ fn run_service(_arguments: Vec<OsString>) -> Result<()> {
     let status_handle = service_control_handler::register(SERVICE_NAME, event_handler)
         .chain_err(|| "Failed to register a service control handler")?;
     let mut persistent_service_status = PersistentServiceStatus::new(status_handle);
-    persistent_service_status
-        .set_pending_start(Duration::from_secs(1))
-        .unwrap();
+    persistent_service_status.set_pending_start(Duration::from_secs(1))?;
 
     let config = cli::get_config();
     let result = ::create_daemon(config).and_then(|daemon| {
-        let shutdown_handle = daemon.shutdown_handle();
-
-        // Register monitor that translates `ServiceControl` to Daemon events
-        start_event_monitor(persistent_service_status.clone(), shutdown_handle, event_rx);
+        shutdown_handle_tx
+            .send(ServiceShutdownHandle {
+                persistent_service_status: persistent_service_status.clone(),
+                shutdown_handle: daemon.shutdown_handle(),
+            })
+            .unwrap();
 
         persistent_service_status.set_running().unwrap();
 
@@ -83,33 +96,9 @@ fn run_service(_arguments: Vec<OsString>) -> Result<()> {
         Ok(_) => ServiceExitCode::default(),
         Err(_) => ServiceExitCode::ServiceSpecific(1),
     };
-
-    persistent_service_status.set_stopped(exit_code).unwrap();
+    persistent_service_status.set_stopped(exit_code)?;
 
     result
-}
-
-/// Start event monitor thread that polls for `ServiceControl` and translates them into calls to
-/// Daemon.
-fn start_event_monitor(
-    mut persistent_service_status: PersistentServiceStatus,
-    shutdown_handle: DaemonShutdownHandle,
-    event_rx: mpsc::Receiver<ServiceControl>,
-) -> thread::JoinHandle<()> {
-    thread::spawn(move || {
-        for event in event_rx {
-            match event {
-                ServiceControl::Stop | ServiceControl::Preshutdown => {
-                    persistent_service_status
-                        .set_pending_stop(Duration::from_secs(10))
-                        .unwrap();
-
-                    shutdown_handle.shutdown();
-                }
-                _ => (),
-            }
-        }
-    })
 }
 
 
@@ -130,7 +119,7 @@ impl PersistentServiceStatus {
 
     /// Tell the system that the service is pending start and provide the time estimate until
     /// initialization is complete.
-    fn set_pending_start(&mut self, wait_hint: Duration) -> io::Result<()> {
+    fn set_pending_start(&mut self, wait_hint: Duration) -> Result<()> {
         self.report_status(
             ServiceState::StartPending,
             wait_hint,
@@ -139,7 +128,7 @@ impl PersistentServiceStatus {
     }
 
     /// Tell the system that the service is running.
-    fn set_running(&mut self) -> io::Result<()> {
+    fn set_running(&mut self) -> Result<()> {
         self.report_status(
             ServiceState::Running,
             Duration::default(),
@@ -149,7 +138,7 @@ impl PersistentServiceStatus {
 
     /// Tell the system that the service is pending stop and provide the time estimate until the
     /// service is stopped.
-    fn set_pending_stop(&mut self, wait_hint: Duration) -> io::Result<()> {
+    fn set_pending_stop(&mut self, wait_hint: Duration) -> Result<()> {
         self.report_status(
             ServiceState::StopPending,
             wait_hint,
@@ -158,7 +147,7 @@ impl PersistentServiceStatus {
     }
 
     /// Tell the system that the service is stopped and provide the exit code.
-    fn set_stopped(&mut self, exit_code: ServiceExitCode) -> io::Result<()> {
+    fn set_stopped(&mut self, exit_code: ServiceExitCode) -> Result<()> {
         self.report_status(ServiceState::Stopped, Duration::default(), exit_code)
     }
 
@@ -168,7 +157,7 @@ impl PersistentServiceStatus {
         next_state: ServiceState,
         wait_hint: Duration,
         exit_code: ServiceExitCode,
-    ) -> io::Result<()> {
+    ) -> Result<()> {
         // Automatically bump the checkpoint when updating the pending events to tell the system
         // that the service is making a progress in transition from pending to final state.
         // `wait_hint` should reflect the estimated time for transition to complete.
@@ -194,7 +183,9 @@ impl PersistentServiceStatus {
             service_status.current_state, service_status.checkpoint, service_status.wait_hint
         );
 
-        self.status_handle.set_service_status(service_status)
+        self.status_handle
+            .set_service_status(service_status)
+            .chain_err(|| ErrorKind::WindowsServiceStatusError)
     }
 }
 

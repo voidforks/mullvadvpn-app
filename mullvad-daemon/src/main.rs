@@ -12,6 +12,9 @@ extern crate clap;
 #[macro_use]
 extern crate error_chain;
 extern crate futures;
+#[cfg(windows)]
+#[macro_use]
+extern crate lazy_static;
 #[cfg(unix)]
 extern crate libc;
 #[macro_use]
@@ -89,9 +92,6 @@ error_chain!{
             description("Error setting up log")
             display("Error setting up log: {}", msg)
         }
-        NoCacheDir {
-            description("Unable to create cache directory")
-        }
         DaemonIsAlreadyRunning {
             description("Another instance of the daemon is already running")
         }
@@ -117,6 +117,10 @@ error_chain!{
         }
         NoRelay {
             description("Found no valid relays to connect to")
+        }
+        #[cfg(windows)]
+        WindowsServiceStatusError {
+            description("Unable to report service status to Windows")
         }
     }
 }
