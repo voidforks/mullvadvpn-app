@@ -93,7 +93,7 @@ fn run_service(_arguments: Vec<OsString>) -> Result<()> {
     });
 
     let exit_code = match result {
-        Ok(_) => ServiceExitCode::default(),
+        Ok(_) => ServiceExitCode::NO_ERROR,
         Err(_) => ServiceExitCode::ServiceSpecific(1),
     };
     persistent_service_status.set_stopped(exit_code)?;
