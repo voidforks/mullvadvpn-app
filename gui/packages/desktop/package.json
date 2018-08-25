@@ -43,6 +43,9 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-flow-comments": "^6.22.0",
+    "babel-plugin-syntax-jsx": "^6.18.0",
+    "babel-plugin-syntax-class-properties": "^6.13.0",
+    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
     "babel-preset-env": "^1.7.0",
     "babel-preset-react": "^6.24.1",
     "browser-sync": "^2.23.6",
@@ -74,7 +77,7 @@
     "private:build": "electron-builder",
     "private:watch": "cross-env yarn run private:compile --source-maps true --watch --skip-initial-build",
     "private:serve": "cross-env babel-node scripts/serve.js",
-    "private:compile": "babel src/ --copy-files --out-dir build",
+    "private:compile": "babel src/ --copy-files --out-dir src/",
     "private:clean": "rimraf build"
   }
 }

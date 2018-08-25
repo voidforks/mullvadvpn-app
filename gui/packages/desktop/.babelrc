@@ -1,14 +1,10 @@
 {
   "presets": [
-    ["env", {
-      "targets": { "electron": "2.0" },
-      "useBuiltIns": true
-    }], "react"
   ],
   "plugins": [
-    "transform-flow-comments",
-    "transform-class-properties",
-    "transform-object-rest-spread",
-    ["transform-builtin-extend", { "globals": ["Error"] }]
+    "syntax-jsx",
+    "syntax-class-properties",
+    "syntax-object-rest-spread",
+    "transform-flow-comments"
   ]
 }
