@@ -13,7 +13,6 @@
   "license": "GPL-3.0",
   "dependencies": {
     "@mullvad/components": "0.1.0",
-    "babel-runtime": "^6.26.0",
     "connected-react-router": "^4.3.0",
     "d3-geo-projection": "^2.3.2",
     "electron-log": "^2.2.8",
@@ -37,17 +36,6 @@
     "windows-security": "https://github.com/mullvad/windows-security.git#0.0.5"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-builtin-extend": "^1.1.2",
-    "babel-plugin-transform-class-properties": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-plugin-transform-flow-comments": "^6.22.0",
-    "babel-plugin-syntax-jsx": "^6.18.0",
-    "babel-plugin-syntax-class-properties": "^6.13.0",
-    "babel-plugin-syntax-object-rest-spread": "^6.13.0",
-    "babel-preset-env": "^1.7.0",
-    "babel-preset-react": "^6.24.1",
     "browser-sync": "^2.23.6",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.1.1",
@@ -61,23 +49,29 @@
     "enzyme-adapter-react-16": "^1.1.0",
     "mock-socket": "^8.0.2",
     "npm-run-all": "^4.0.1",
-    "rimraf": "^2.5.4"
+    "rimraf": "^2.5.4",
+    "ts-node": "^7.0.1",
+    "tslint": "^5.11.0",
+    "tslint-config-prettier": "^1.15.0",
+    "typescript": "^3.0.1"
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
-    "develop": "cross-env yarn run private:compile --source-maps true && run-p -r private:watch private:serve",
-    "test": "electron-mocha --renderer -R spec --require babel-core/register --require-main \"test/setup/main.js\" --preload \"test/setup/renderer.js\" \"test/*.spec.js\" \"test/**/*.spec.js\"",
-    "pack:mac": "run-s private:clean private:compile private:build:mac private:postbuild:mac",
-    "pack:win": "run-s private:clean private:compile private:build:win",
+    "develop": "cross-env run-p private:compile private:copy-assets && run-p -r private:watch private:serve",
+    "test": "electron-mocha --renderer -R spec --require ts-node/register --require-main \"test/setup/main.js\" --preload \"test/setup/renderer.js\" \"test/*.spec.js\" \"test/**/*.spec.js\"",
+    "lint": "tslint -t stylish -p .",
+    "pack:mac": "run-s private:clean private:compile private:copy-assets private:build:mac private:postbuild:mac",
+    "pack:win": "run-s private:clean private:compile private:copy-assets private:build:win",
     "pack:linux": "run-s private:clean private:compile private:build:linux",
     "private:build:mac": "yarn run private:build --mac",
     "private:postbuild:mac": "rimraf ../../../dist/mac",
     "private:build:win": "yarn run private:build --win",
     "private:build:linux": "yarn run private:build --linux",
     "private:build": "electron-builder",
-    "private:watch": "cross-env yarn run private:compile --source-maps true --watch --skip-initial-build",
-    "private:serve": "cross-env babel-node scripts/serve.js",
-    "private:compile": "babel src/ --copy-files --out-dir src/",
+    "private:watch": "yarn run private:compile --watch",
+    "private:serve": "cross-env ts-node scripts/serve.js",
+    "private:compile": "tsc",
+    "private:copy-assets": "cross-env mkdir -p build/renderer/components && cp src/renderer/components/*.css build/renderer/components && cp src/renderer/index.html build/renderer && cp src/config.json build/ && cp -R src/assets build/assets",
     "private:clean": "rimraf build"
   }
 }
