@@ -16,30 +16,29 @@ const MOVE_THRESHOLD = 10;
   startTime: ?number,
 };*/
 
-
 export default class Switch extends React.Component /*:: <SwitchProps, State>*/ {
   static defaultProps /*: SwitchProps*/ = {
     isOn: false,
-    onChange: null
+    onChange: null,
   };
 
   state = {
     ignoreChange: false,
     initialPos: { x: 0, y: 0 },
-    startTime: (null /*: ?number*/)
+    startTime: null /*: ?number*/,
   };
 
   isCapturingMouseEvents = false;
   /*:: ref: ?HTMLInputElement;*/
 
-  onRef = (e /*: ?HTMLInputElement*/) => this.ref = e;
+  onRef = (e /*: ?HTMLInputElement*/) => (this.ref = e);
 
   handleMouseDown = (e /*: MouseEvent*/) => {
     const { clientX: x, clientY: y } = e;
     this.startCapturingMouseEvents();
     this.setState({
       initialPos: { x, y },
-      startTime: e.timeStamp
+      startTime: e.timeStamp,
     });
   };
 
@@ -65,7 +64,7 @@ export default class Switch extends React.Component /*:: <SwitchProps, State>*/ 
     if (isOn !== nextOn) {
       this.setState({
         initialPos: { x, y },
-        ignoreChange: true
+        ignoreChange: true,
       });
 
       if (inputElement) {
@@ -136,6 +135,16 @@ export default class Switch extends React.Component /*:: <SwitchProps, State>*/ 
     // eslint-disable-next-line no-unused-vars
     const { isOn, onChange, ...otherProps } = this.props;
     const className = ('switch ' + (otherProps.className || '')).trim();
-    return <input {...otherProps} type="checkbox" ref={this.onRef} className={className} checked={isOn} onMouseDown={this.handleMouseDown} onChange={this.handleChange} />;
+    return (
+      <input
+        {...otherProps}
+        type="checkbox"
+        ref={this.onRef}
+        className={className}
+        checked={isOn}
+        onMouseDown={this.handleMouseDown}
+        onChange={this.handleChange}
+      />
+    );
   }
 }

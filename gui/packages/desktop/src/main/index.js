@@ -16,14 +16,13 @@ import { resolveBin } from './proc';
 
 /*:: import type { TrayIconType } from './tray-icon-controller';*/
 
-
 const ApplicationMain = {
-  _windowController: (null /*: ?WindowController*/),
-  _trayIconController: (null /*: ?TrayIconController*/),
+  _windowController: null /*: ?WindowController*/,
+  _trayIconController: null /*: ?TrayIconController*/,
 
   _logFilePath: '',
-  _oldLogFilePath: (null /*: ?string*/),
-  _connectionFilePollInterval: (null /*: ?IntervalID*/),
+  _oldLogFilePath: null /*: ?string*/,
+  _connectionFilePollInterval: null /*: ?IntervalID*/,
   _shouldQuit: false,
 
   run() {
@@ -104,7 +103,6 @@ const ApplicationMain = {
         fs.renameSync(this._logFilePath, this._oldLogFilePath);
       } catch (error) {}
       // No previous log file exists
-
 
       // Configure logging to file
       log.transports.console.level = 'debug';
@@ -192,7 +190,7 @@ const ApplicationMain = {
   },
 
   _registerIpcListeners() {
-    ipcMain.on('discover-daemon-connection', async event => {
+    ipcMain.on('discover-daemon-connection', async (event) => {
       const addressFile = new RpcAddressFile();
 
       log.debug(`Waiting for RPC address file: "${addressFile.filePath}"`);
@@ -272,20 +270,26 @@ const ApplicationMain = {
 
           event.sender.send('collect-logs-reply', requestId, {
             success: false,
-            error: error.message
+            error: error.message,
           });
         } else {
           log.debug(`Problem report was written to ${reportPath}`);
 
           event.sender.send('collect-logs-reply', requestId, {
             success: true,
-            reportPath
+            reportPath,
           });
         }
       });
     });
 
-    ipcMain.on('send-problem-report', (event, requestId, email /*: string*/, message /*: string*/, savedReport /*: string*/) => {
+    ipcMain.on('send-problem-report', (
+      event,
+      requestId,
+      email /*: string*/,
+      message /*: string*/,
+      savedReport /*: string*/,
+    ) => {
       const executable = resolveBin('problem-report');
       const args = ['send', '--email', email, '--message', message, '--report', savedReport];
 
@@ -297,13 +301,13 @@ const ApplicationMain = {
 
           event.sender.send('send-problem-report-reply', requestId, {
             success: false,
-            error: error.message
+            error: error.message,
           });
         } else {
           log.info('Problem report was sent.');
 
           event.sender.send('send-problem-report-reply', requestId, {
-            success: true
+            success: true,
           });
         }
       });
@@ -343,33 +347,32 @@ const ApplicationMain = {
         // prevents renderer process code from not running when window is hidden
         backgroundThrottling: false,
         // Enable experimental features
-        blinkFeatures: 'CSSBackdropFilter'
-      }
+        blinkFeatures: 'CSSBackdropFilter',
+      },
     };
 
     switch (process.platform) {
-      case 'darwin':
-        {
-          // setup window flags to mimic popover on macOS
-          const appWindow = new BrowserWindow({
-            ...options,
-            height: contentHeight + headerBarArrowHeight,
-            minHeight: contentHeight + headerBarArrowHeight,
-            transparent: true
-          });
+      case 'darwin': {
+        // setup window flags to mimic popover on macOS
+        const appWindow = new BrowserWindow({
+          ...options,
+          height: contentHeight + headerBarArrowHeight,
+          minHeight: contentHeight + headerBarArrowHeight,
+          transparent: true,
+        });
 
-          // make the window visible on all workspaces
-          appWindow.setVisibleOnAllWorkspaces(true);
+        // make the window visible on all workspaces
+        appWindow.setVisibleOnAllWorkspaces(true);
 
-          return appWindow;
-        }
+        return appWindow;
+      }
 
       case 'win32':
         // setup window flags to mimic an overlay window
         return new BrowserWindow({
           ...options,
           transparent: true,
-          skipTaskbar: true
+          skipTaskbar: true,
         });
 
       default:
@@ -378,28 +381,48 @@ const ApplicationMain = {
   },
 
   _setAppMenu() {
-    const template = [{
-      label: 'Mullvad',
-      submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'quit' }]
-    }, {
-      label: 'Edit',
-      submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { type: 'separator' }, { role: 'selectall' }]
-    }];
+    const template = [
+      {
+        label: 'Mullvad',
+        submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'quit' }],
+      },
+      {
+        label: 'Edit',
+        submenu: [
+          { role: 'cut' },
+          { role: 'copy' },
+          { role: 'paste' },
+          { type: 'separator' },
+          { role: 'selectall' },
+        ],
+      },
+    ];
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   },
 
   _addContextMenu(window /*: BrowserWindow*/) {
-    const menuTemplate = [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { type: 'separator' }, { role: 'selectall' }];
+    const menuTemplate = [
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      { type: 'separator' },
+      { role: 'selectall' },
+    ];
 
     // add inspect element on right click menu
-    window.webContents.on('context-menu', (_e /*: Event*/, props /*: { x: number, y: number, isEditable: boolean }*/) => {
-      const inspectTemplate = [{
-        label: 'Inspect element',
-        click() {
-          window.openDevTools({ mode: 'detach' });
-          window.inspectElement(props.x, props.y);
-        }
-      }];
+    window.webContents.on('context-menu', (
+      _e /*: Event*/,
+      props /*: { x: number, y: number, isEditable: boolean }*/,
+    ) => {
+      const inspectTemplate = [
+        {
+          label: 'Inspect element',
+          click() {
+            window.openDevTools({ mode: 'detach' });
+            window.inspectElement(props.x, props.y);
+          },
+        },
+      ];
 
       if (props.isEditable) {
         let inputMenu = menuTemplate;
@@ -430,7 +453,10 @@ const ApplicationMain = {
     return tray;
   },
 
-  _installWindowsMenubarAppWindowHandlers(tray /*: Tray*/, windowController /*: WindowController*/) {
+  _installWindowsMenubarAppWindowHandlers(
+    tray /*: Tray*/,
+    windowController /*: WindowController*/,
+  ) {
     tray.on('click', () => windowController.toggle());
     tray.on('right-click', () => windowController.hide());
 
@@ -438,7 +464,11 @@ const ApplicationMain = {
       // Detect if blur happened when user had a cursor above the tray icon.
       const trayBounds = tray.getBounds();
       const cursorPos = screen.getCursorScreenPoint();
-      const isCursorInside = cursorPos.x >= trayBounds.x && cursorPos.y >= trayBounds.y && cursorPos.x <= trayBounds.x + trayBounds.width && cursorPos.y <= trayBounds.y + trayBounds.height;
+      const isCursorInside =
+        cursorPos.x >= trayBounds.x &&
+        cursorPos.y >= trayBounds.y &&
+        cursorPos.x <= trayBounds.x + trayBounds.width &&
+        cursorPos.y <= trayBounds.y + trayBounds.height;
       if (!isCursorInside) {
         windowController.hide();
       }
@@ -459,7 +489,10 @@ const ApplicationMain = {
     tray.on('click', () => windowController.toggle());
   },
 
-  _installGenericMenubarAppWindowHandlers(tray /*: Tray*/, windowController /*: WindowController*/) {
+  _installGenericMenubarAppWindowHandlers(
+    tray /*: Tray*/,
+    windowController /*: WindowController*/,
+  ) {
     tray.on('click', () => {
       windowController.toggle();
     });
@@ -467,7 +500,7 @@ const ApplicationMain = {
   },
 
   _installLinuxWindowCloseHandler(windowController /*: WindowController*/) {
-    windowController.window.on('close', closeEvent => {
+    windowController.window.on('close', (closeEvent) => {
       if (process.platform === 'linux' && !this._shouldQuit) {
         closeEvent.preventDefault();
         windowController.hide();
@@ -476,7 +509,7 @@ const ApplicationMain = {
         return true;
       }
     });
-  }
+  },
 };
 
 ApplicationMain.run();

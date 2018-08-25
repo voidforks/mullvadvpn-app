@@ -35,41 +35,42 @@
   | OnlineAction
   | OfflineAction;*/
 
-
 function connecting() /*: ConnectingAction*/ {
   return {
-    type: 'CONNECTING'
+    type: 'CONNECTING',
   };
 }
 
 function connected() /*: ConnectedAction*/ {
   return {
-    type: 'CONNECTED'
+    type: 'CONNECTED',
   };
 }
 
 function disconnected() /*: DisconnectedAction*/ {
   return {
-    type: 'DISCONNECTED'
+    type: 'DISCONNECTED',
   };
 }
 
-function newLocation(newLoc /*: $PropertyType<NewLocationAction, 'newLocation'>*/) /*: NewLocationAction*/ {
+function newLocation(
+  newLoc /*: $PropertyType<NewLocationAction, 'newLocation'>*/,
+) /*: NewLocationAction*/ {
   return {
     type: 'NEW_LOCATION',
-    newLocation: newLoc
+    newLocation: newLoc,
   };
 }
 
 function online() /*: OnlineAction*/ {
   return {
-    type: 'ONLINE'
+    type: 'ONLINE',
   };
 }
 
 function offline() /*: OfflineAction*/ {
   return {
-    type: 'OFFLINE'
+    type: 'OFFLINE',
   };
 }
 
@@ -79,5 +80,5 @@ export default {
   connected,
   disconnected,
   online,
-  offline
+  offline,
 };

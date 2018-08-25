@@ -40,11 +40,9 @@ import uuid from 'uuid';
 };*/
 /*:: export type JsonRpcMessage = JsonRpcErrorResponse | JsonRpcNotification | JsonRpcSuccess;*/
 
-
 export class RemoteError extends Error {
   /*:: _code: number;*/
   /*:: _details: string;*/
-
 
   constructor(code /*: number*/, details /*: string*/) {
     super(`Remote JSON-RPC error ${code}: ${details}`);
@@ -64,7 +62,6 @@ export class RemoteError extends Error {
 export class TimeOutError extends Error {
   /*:: _jsonRpcMessage: Object;*/
 
-
   constructor(jsonRpcMessage /*: Object*/) {
     super('Request timed out');
 
@@ -78,7 +75,6 @@ export class TimeOutError extends Error {
 
 export class SubscriptionError extends Error {
   /*:: _reply: mixed;*/
-
 
   constructor(message /*: string*/, reply /*: mixed*/) {
     const replyString = JSON.stringify(reply);
@@ -95,7 +91,6 @@ export class SubscriptionError extends Error {
 
 export class ConnectionError extends Error {
   /*:: _code: number;*/
-
 
   constructor(code /*: number*/) {
     super(ConnectionError.reason(code));
@@ -130,10 +125,10 @@ export default class JsonRpcTransport extends EventEmitter {
   /*:: _webSocket: ?WebSocket;*/
   /*:: _websocketFactory: (string) => WebSocket;*/
 
-
   constructor(websocketFactory /*: ?(string) => WebSocket*/) {
     super();
-    this._websocketFactory = websocketFactory || (connectionString => new WebSocket(connectionString));
+    this._websocketFactory =
+      websocketFactory || ((connectionString) => new WebSocket(connectionString));
   }
 
   /// Connect websocket
@@ -157,7 +152,7 @@ export default class JsonRpcTransport extends EventEmitter {
         isPromiseResolved = true;
       };
 
-      webSocket.onmessage = event => {
+      webSocket.onmessage = (event) => {
         const data = event.data;
         if (typeof data === 'string') {
           this._onMessage(data);
@@ -166,7 +161,7 @@ export default class JsonRpcTransport extends EventEmitter {
         }
       };
 
-      webSocket.onclose = event => {
+      webSocket.onclose = (event) => {
         log.info(`The websocket connection closed with code: ${event.code}`);
 
         // Remove all subscriptions since they are connection based
@@ -202,7 +197,10 @@ export default class JsonRpcTransport extends EventEmitter {
       if (typeof subscriptionId === 'string' || typeof subscriptionId === 'number') {
         this._subscriptions.set(subscriptionId, listener);
       } else {
-        throw new SubscriptionError('The subscription id was not a string or a number', subscriptionId);
+        throw new SubscriptionError(
+          'The subscription id was not a string or a number',
+          subscriptionId,
+        );
       }
     } catch (e) {
       log.error(`Failed adding listener to ${event}: ${e.message}`);
@@ -210,7 +208,11 @@ export default class JsonRpcTransport extends EventEmitter {
     }
   }
 
-  send(action /*: string*/, data /*: mixed*/, timeout /*: number*/ = DEFAULT_TIMEOUT_MILLIS) /*: Promise<mixed>*/ {
+  send(
+    action /*: string*/,
+    data /*: mixed*/,
+    timeout /*: number*/ = DEFAULT_TIMEOUT_MILLIS,
+  ) /*: Promise<mixed>*/ {
     return new Promise((resolve, reject) => {
       const webSocket = this._webSocket;
       if (!webSocket) {
@@ -226,7 +228,7 @@ export default class JsonRpcTransport extends EventEmitter {
         resolve,
         reject,
         timerId,
-        message
+        message,
       });
 
       try {

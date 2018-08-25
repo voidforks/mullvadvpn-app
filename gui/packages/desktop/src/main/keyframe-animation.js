@@ -12,7 +12,6 @@ import { nativeImage } from 'electron';
 };*/
 /*:: export type KeyframeAnimationRange = [number, number];*/
 
-
 export default class KeyframeAnimation {
   _speed /*: number*/ = 200; // ms
   _repeat /*: boolean*/ = false;
@@ -87,7 +86,10 @@ export default class KeyframeAnimation {
   }
 
   // create animation from files matching filename pattern. i.e (bubble-frame-{}.png)
-  static fromFilePattern(filePattern /*: string*/, range /*: KeyframeAnimationRange*/) /*: KeyframeAnimation*/ {
+  static fromFilePattern(
+    filePattern /*: string*/,
+    range /*: KeyframeAnimationRange*/,
+  ) /*: KeyframeAnimation*/ {
     const images /*: Array<NativeImage>*/ = [];
 
     if (range.length !== 2 || range[0] > range[1]) {
@@ -103,7 +105,9 @@ export default class KeyframeAnimation {
   }
 
   static fromFileSequence(files /*: Array<string>*/) /*: KeyframeAnimation*/ {
-    const images /*: Array<NativeImage>*/ = files.map(filePath => nativeImage.createFromPath(filePath));
+    const images /*: Array<NativeImage>*/ = files.map((filePath) =>
+      nativeImage.createFromPath(filePath),
+    );
     return new KeyframeAnimation(images);
   }
 
@@ -236,7 +240,11 @@ export default class KeyframeAnimation {
     }
   }
 
-  _nextFrame(cur /*: number*/, frameRange /*: KeyframeAnimationRange*/, isReverse /*: boolean*/) /*: number*/ {
+  _nextFrame(
+    cur /*: number*/,
+    frameRange /*: KeyframeAnimationRange*/,
+    isReverse /*: boolean*/,
+  ) /*: number*/ {
     if (isReverse) {
       if (cur < frameRange[0]) {
         return cur + 1;

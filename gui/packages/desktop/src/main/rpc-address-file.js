@@ -8,7 +8,6 @@ import { getSystemTemporaryDirectory } from './tempdir';
 
 /*:: import type { RpcCredentials } from '../common/types';*/
 
-
 const fsReadFileAsync = promisify(fs.readFile);
 
 const POLL_INTERVAL = 200;
@@ -18,7 +17,6 @@ export default class RpcAddressFile {
   /*:: _pollIntervalId: ?IntervalID;*/
   /*:: _pollPromise: ?Promise<void>;*/
 
-
   get filePath() /*: string*/ {
     return this._filePath;
   }
@@ -27,9 +25,9 @@ export default class RpcAddressFile {
     let promise = this._pollPromise;
 
     if (!promise) {
-      promise = new Promise(resolve => {
+      promise = new Promise((resolve) => {
         const timer = setInterval(() => {
-          fs.exists(this._filePath, exists => {
+          fs.exists(this._filePath, (exists) => {
             if (exists) {
               clearInterval(timer);
               resolve();
@@ -53,7 +51,7 @@ export default class RpcAddressFile {
     if (connectionString && sharedSecret !== undefined) {
       return {
         connectionString,
-        sharedSecret
+        sharedSecret,
       };
     } else {
       throw new Error('Cannot parse the RPC address file');
@@ -78,17 +76,16 @@ function getRpcAddressFilePath() {
   const rpcAddressFileName = '.mullvad_rpc_address';
 
   switch (process.platform) {
-    case 'win32':
-      {
-        // Windows: %ALLUSERSPROFILE%\{appname}
-        const programDataDirectory = process.env.ALLUSERSPROFILE;
-        if (programDataDirectory) {
-          const appDataDirectory = path.join(programDataDirectory, app.getName());
-          return path.join(appDataDirectory, rpcAddressFileName);
-        } else {
-          throw new Error('Missing %ALLUSERSPROFILE% environment variable');
-        }
+    case 'win32': {
+      // Windows: %ALLUSERSPROFILE%\{appname}
+      const programDataDirectory = process.env.ALLUSERSPROFILE;
+      if (programDataDirectory) {
+        const appDataDirectory = path.join(programDataDirectory, app.getName());
+        return path.join(appDataDirectory, rpcAddressFileName);
+      } else {
+        throw new Error('Missing %ALLUSERSPROFILE% environment variable');
       }
+    }
     default:
       return path.join(getSystemTemporaryDirectory(), rpcAddressFileName);
   }
@@ -106,7 +103,10 @@ function isOwnedByLocalSystem(path /*: string*/) /*: boolean*/ {
   // $FlowFixMe: this module is only available on Windows
   const winsec = require('windows-security');
   const ownerSid = winsec.getFileOwnerSid(path, null);
-  const isWellKnownSid = winsec.isWellKnownSid(ownerSid, winsec.WellKnownSid.BuiltinAdministratorsSid);
+  const isWellKnownSid = winsec.isWellKnownSid(
+    ownerSid,
+    winsec.WellKnownSid.BuiltinAdministratorsSid,
+  );
 
   return isWellKnownSid;
 }

@@ -5,15 +5,13 @@ import KeyframeAnimation from './keyframe-animation';
 /*:: import type { Tray } from 'electron';*/
 /*:: export type TrayIconType = 'unsecured' | 'securing' | 'secured';*/
 
-
 export default class TrayIconController {
   /*:: _animation: ?KeyframeAnimation;*/
   /*:: _iconType: TrayIconType;*/
 
-
   constructor(tray /*: Tray*/, initialType /*: TrayIconType*/) {
     const animation = this._createAnimation();
-    animation.onFrame = img => tray.setImage(img);
+    animation.onFrame = (img) => tray.setImage(img);
     animation.reverse = this._isReverseAnimation(initialType);
     animation.play({ advanceTo: 'end' });
 

@@ -8,7 +8,6 @@ export default class WindowStateObserver {
   /*:: _onShow: ?EventListener;*/
   /*:: _onHide: ?EventListener;*/
 
-
   get onShow() {
     return this._onShow;
   }

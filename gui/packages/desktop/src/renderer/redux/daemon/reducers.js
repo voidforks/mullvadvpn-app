@@ -5,23 +5,25 @@
   isConnected: boolean,
 };*/
 
-
 const initialState /*: DaemonReduxState*/ = {
-  isConnected: false
+  isConnected: false,
 };
 
-export default function (state /*: DaemonReduxState*/ = initialState, action /*: ReduxAction*/) /*: DaemonReduxState*/ {
+export default function(
+  state /*: DaemonReduxState*/ = initialState,
+  action /*: ReduxAction*/,
+) /*: DaemonReduxState*/ {
   switch (action.type) {
     case 'DAEMON_CONNECTED':
       return {
         ...state,
-        isConnected: true
+        isConnected: true,
       };
 
     case 'DAEMON_DISCONNECTED':
       return {
         ...state,
-        isConnected: false
+        isConnected: false,
       };
 
     default:

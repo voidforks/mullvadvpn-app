@@ -29,17 +29,15 @@ import Img from './Img';
   sendProblemReport: (email: string, message: string, savedReport: string) => Promise<void>,
 };*/
 
-
 export default class Support extends Component /*:: <SupportProps, SupportState>*/ {
   state = {
     email: '',
     message: '',
     savedReport: null,
-    sendState: 'INITIAL'
+    sendState: 'INITIAL',
   };
 
   /*:: _collectLogPromise: ?Promise<string>;*/
-
 
   constructor(props /*: SupportProps*/) {
     super(props);
@@ -77,7 +75,7 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
   _saveFormData() {
     this.props.saveReportForm({
       email: this.state.email,
-      message: this.state.message
+      message: this.state.message,
     });
   }
 
@@ -92,7 +90,7 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
 
       try {
         const reportPath = await collectPromise;
-        return new Promise(resolve => {
+        return new Promise((resolve) => {
           this.setState({ savedReport: reportPath }, () => resolve(reportPath));
         });
       } catch (error) {
@@ -105,7 +103,7 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
 
   onSend = async () /*: Promise<void>*/ => {
     if (this.state.sendState === 'INITIAL' && this.state.email.length === 0) {
-      return new Promise(resolve => {
+      return new Promise((resolve) => {
         this.setState({ sendState: 'CONFIRM_NO_EMAIL' }, () => resolve());
       });
     } else {
@@ -139,16 +137,23 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
 
   render() {
     const { sendState } = this.state;
-    const header = <SettingsHeader>
+    const header = (
+      <SettingsHeader>
         <HeaderTitle>Report a problem</HeaderTitle>
-        {(sendState === 'INITIAL' || sendState === 'CONFIRM_NO_EMAIL') && <HeaderSubTitle>
-            {"To help you more effectively, your app's log file will be attached to this message. Your data will remain secure and private, as it is anonymised before being sent over an encrypted channel."}
-          </HeaderSubTitle>}
-      </SettingsHeader>;
+        {(sendState === 'INITIAL' || sendState === 'CONFIRM_NO_EMAIL') && (
+          <HeaderSubTitle>
+            {
+              "To help you more effectively, your app's log file will be attached to this message. Your data will remain secure and private, as it is anonymised before being sent over an encrypted channel."
+            }
+          </HeaderSubTitle>
+        )}
+      </SettingsHeader>
+    );
 
     const content = this._renderContent();
 
-    return <Layout>
+    return (
+      <Layout>
         <Container>
           <View style={styles.support}>
             <NavigationBar>
@@ -162,7 +167,8 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
             </View>
           </View>
         </Container>
-      </Layout>;
+      </Layout>
+    );
   }
 
   _renderContent() {
@@ -182,49 +188,80 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
   }
 
   _renderForm() {
-    return <View style={styles.support__content}>
+    return (
+      <View style={styles.support__content}>
         <View style={styles.support__form}>
           <View style={styles.support__form_row_email}>
-            <TextInput style={styles.support__form_email} placeholder="Your email (optional)" defaultValue={this.state.email} onChangeText={this.onChangeEmail} keyboardType="email-address" />
+            <TextInput
+              style={styles.support__form_email}
+              placeholder="Your email (optional)"
+              defaultValue={this.state.email}
+              onChangeText={this.onChangeEmail}
+              keyboardType="email-address"
+            />
           </View>
           <View style={styles.support__form_row_message}>
             <View style={styles.support__form_message_scroll_wrap}>
-              <TextInput style={styles.support__form_message} placeholder="Describe your problem" defaultValue={this.state.message} multiline={true} onChangeText={this.onChangeDescription} testName="support__form_message" />
+              <TextInput
+                style={styles.support__form_message}
+                placeholder="Describe your problem"
+                defaultValue={this.state.message}
+                multiline={true}
+                onChangeText={this.onChangeDescription}
+                testName="support__form_message"
+              />
             </View>
           </View>
           <View style={styles.support__footer}>
-            {this.state.sendState === 'CONFIRM_NO_EMAIL' ? this._renderNoEmailWarning() : this._renderActionButtons()}
+            {this.state.sendState === 'CONFIRM_NO_EMAIL'
+              ? this._renderNoEmailWarning()
+              : this._renderActionButtons()}
           </View>
         </View>
-      </View>;
+      </View>
+    );
   }
 
   _renderNoEmailWarning() {
-    return <View>
+    return (
+      <View>
         <Text style={styles.support__no_email_warning}>
           You are about to send the problem report without a way for us to get back to you. If you
           want an answer to your report you will have to enter an email address.
         </Text>
-        <AppButton.GreenButton disabled={!this.validate()} onPress={this.onSend} testName="support__send_logs">
+        <AppButton.GreenButton
+          disabled={!this.validate()}
+          onPress={this.onSend}
+          testName="support__send_logs">
           {'Send anyway'}
         </AppButton.GreenButton>
-      </View>;
+      </View>
+    );
   }
 
   _renderActionButtons() {
-    return <View>
-        <AppButton.BlueButton style={styles.view_logs_button} onPress={this.onViewLog} testName="support__view_logs">
+    return (
+      <View>
+        <AppButton.BlueButton
+          style={styles.view_logs_button}
+          onPress={this.onViewLog}
+          testName="support__view_logs">
           <AppButton.Label>View app logs</AppButton.Label>
           <Img source="icon-extLink" height={16} width={16} />
         </AppButton.BlueButton>
-        <AppButton.GreenButton disabled={!this.validate()} onPress={this.onSend} testName="support__send_logs">
+        <AppButton.GreenButton
+          disabled={!this.validate()}
+          onPress={this.onSend}
+          testName="support__send_logs">
           Send
         </AppButton.GreenButton>
-      </View>;
+      </View>
+    );
   }
 
   _renderLoading() {
-    return <View style={styles.support__content}>
+    return (
+      <View style={styles.support__content}>
         <View style={styles.support__form}>
           <View style={styles.support__form_row}>
             <View style={styles.support__status_icon}>
@@ -234,11 +271,13 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
             <Text style={styles.support__send_status}>{'Sending...'}</Text>
           </View>
         </View>
-      </View>;
+      </View>
+    );
   }
 
   _renderSent() {
-    return <View style={styles.support__content}>
+    return (
+      <View style={styles.support__content}>
         <View style={styles.support__form}>
           <View style={styles.support__form_row}>
             <View style={styles.support__status_icon}>
@@ -248,17 +287,21 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
             <Text style={styles.support__send_status}>{'Sent'}</Text>
 
             <Text style={styles.support__sent_message}>Thanks! We will look into this.</Text>
-            {this.state.email.trim().length > 0 ? <Text style={styles.support__sent_message}>
+            {this.state.email.trim().length > 0 ? (
+              <Text style={styles.support__sent_message}>
                 If needed we will contact you on {'\u00A0'}
                 <Text style={styles.support__sent_email}>{this.state.email}</Text>
-              </Text> : null}
+              </Text>
+            ) : null}
           </View>
         </View>
-      </View>;
+      </View>
+    );
   }
 
   _renderFailed() {
-    return <View style={styles.support__content}>
+    return (
+      <View style={styles.support__content}>
         <View style={styles.support__form}>
           <View style={styles.support__form_row}>
             <View style={styles.support__status_icon}>
@@ -269,13 +312,16 @@ export default class Support extends Component /*:: <SupportProps, SupportState>
           </View>
         </View>
         <View style={styles.support__footer}>
-          <AppButton.BlueButton style={styles.edit_message_button} onPress={() => this.setState({ sendState: 'INITIAL' })}>
+          <AppButton.BlueButton
+            style={styles.edit_message_button}
+            onPress={() => this.setState({ sendState: 'INITIAL' })}>
             {'Edit message'}
           </AppButton.BlueButton>
           <AppButton.GreenButton onPress={this.onSend} testName="support__send_logs">
             Try again
           </AppButton.GreenButton>
         </View>
-      </View>;
+      </View>
+    );
   }
 }

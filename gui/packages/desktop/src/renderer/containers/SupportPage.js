@@ -15,7 +15,7 @@ import supportActions from '../redux/support/actions';
 const mapStateToProps = (state /*: ReduxState*/) => ({
   defaultEmail: state.support.email,
   defaultMessage: state.support.message,
-  accountHistory: state.account.accountHistory
+  accountHistory: state.account.accountHistory,
 });
 
 const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, _props /*: SharedRouteProps*/) => {
@@ -24,12 +24,15 @@ const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, _props /*: SharedRoute
 
   return {
     onClose: () => history.goBack(),
-    viewLog: path => shell.openItem(path),
+    viewLog: (path) => shell.openItem(path),
     saveReportForm,
     clearReportForm,
     collectProblemReport,
-    sendProblemReport
+    sendProblemReport,
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Support);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Support);

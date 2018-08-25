@@ -12,8 +12,10 @@ import Connect from '../components/Connect';
 /*:: import type { SharedRouteProps } from '../routes';*/
 /*:: import type { RelaySettingsRedux, RelayLocationRedux } from '../redux/settings/reducers';*/
 
-
-function getRelayName(relaySettings /*: RelaySettingsRedux*/, relayLocations /*: Array<RelayLocationRedux>*/) /*: string*/ {
+function getRelayName(
+  relaySettings /*: RelaySettingsRedux*/,
+  relayLocations /*: Array<RelayLocationRedux>*/,
+) /*: string*/ {
   if (relaySettings.normal) {
     const location = relaySettings.normal.location;
 
@@ -47,7 +49,7 @@ const mapStateToProps = (state /*: ReduxState*/) => {
   return {
     accountExpiry: state.account.expiry,
     selectedRelayName: getRelayName(state.settings.relaySettings, state.settings.relayLocations),
-    connection: state.connection
+    connection: state.connection,
   };
 };
 
@@ -75,9 +77,12 @@ const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteP
         log.error(`Failed to disconnect the tunnel: ${error.message}`);
       }
     },
-    onExternalLink: type => shell.openExternal(links[type]),
-    updateAccountExpiry: () => props.app.updateAccountExpiry()
+    onExternalLink: (type) => shell.openExternal(links[type]),
+    updateAccountExpiry: () => props.app.updateAccountExpiry(),
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Connect);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Connect);

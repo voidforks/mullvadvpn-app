@@ -31,7 +31,6 @@ import { colors } from '../../config';
   updateAccountExpiry: () => Promise<void>,
 };*/
 
-
 export default class Settings extends Component /*:: <Props>*/ {
   _windowStateObserver = new WindowStateObserver();
 
@@ -48,7 +47,8 @@ export default class Settings extends Component /*:: <Props>*/ {
   }
 
   render() {
-    return <Layout>
+    return (
+      <Layout>
         <Container>
           <View style={styles.settings}>
             <NavigationBar>
@@ -73,7 +73,8 @@ export default class Settings extends Component /*:: <Props>*/ {
             </View>
           </View>
         </Container>
-      </Layout>;
+      </Layout>
+    );
   }
 
   _renderTopButtons() {
@@ -92,21 +93,32 @@ export default class Settings extends Component /*:: <Props>*/ {
       formattedExpiry = (expiry.fromNow(true) + ' left').toUpperCase();
     }
 
-    return <View>
+    return (
+      <View>
         <View testName="settings__account">
-          {isOutOfTime ? <Cell.CellButton onPress={this.props.onViewAccount} testName="settings__account_paid_until_button">
+          {isOutOfTime ? (
+            <Cell.CellButton
+              onPress={this.props.onViewAccount}
+              testName="settings__account_paid_until_button">
               <Cell.Label>Account</Cell.Label>
-              <Cell.SubText testName="settings__account_paid_until_subtext" style={styles.settings__account_paid_until_label__error}>
+              <Cell.SubText
+                testName="settings__account_paid_until_subtext"
+                style={styles.settings__account_paid_until_label__error}>
                 {'OUT OF TIME'}
               </Cell.SubText>
               <Cell.Img height={12} width={7} source="icon-chevron" />
-            </Cell.CellButton> : <Cell.CellButton onPress={this.props.onViewAccount} testName="settings__account_paid_until_button">
+            </Cell.CellButton>
+          ) : (
+            <Cell.CellButton
+              onPress={this.props.onViewAccount}
+              testName="settings__account_paid_until_button">
               <Cell.Label>Account</Cell.Label>
               <Cell.SubText testName="settings__account_paid_until_subtext">
                 {formattedExpiry}
               </Cell.SubText>
               <Cell.Img height={12} width={7} source="icon-chevron" />
-            </Cell.CellButton>}
+            </Cell.CellButton>
+          )}
         </View>
 
         <Cell.CellButton onPress={this.props.onViewPreferences} testName="settings__preferences">
@@ -119,42 +131,58 @@ export default class Settings extends Component /*:: <Props>*/ {
           <Cell.Img height={12} width={7} source="icon-chevron" />
         </Cell.CellButton>
         <View style={styles.settings__cell_spacer} />
-      </View>;
+      </View>
+    );
   }
 
   _renderMiddleButtons() {
     let icon;
     let footer;
     if (!this.props.consistentVersion || !this.props.upToDateVersion) {
-      const message = !this.props.consistentVersion ? 'Inconsistent internal version information, please restart the app.' : 'This is not the latest version, download the update to remain safe.';
+      const message = !this.props.consistentVersion
+        ? 'Inconsistent internal version information, please restart the app.'
+        : 'This is not the latest version, download the update to remain safe.';
 
-      icon = <Img source="icon-alert" tintColor={colors.red} style={styles.settings__version_warning} />;
-      footer = <View style={styles.settings__cell_footer}>
+      icon = (
+        <Img source="icon-alert" tintColor={colors.red} style={styles.settings__version_warning} />
+      );
+      footer = (
+        <View style={styles.settings__cell_footer}>
           <Text style={styles.settings__cell_footer_label}>{message}</Text>
-        </View>;
+        </View>
+      );
     } else {
       footer = <View style={styles.settings__cell_spacer} />;
     }
 
-    return <View>
-        <Cell.CellButton onPress={this.props.onExternalLink.bind(this, 'download')} testName="settings__version">
+    return (
+      <View>
+        <Cell.CellButton
+          onPress={this.props.onExternalLink.bind(this, 'download')}
+          testName="settings__version">
           {icon}
           <Cell.Label>App version</Cell.Label>
           <Cell.SubText>{this.props.appVersion}</Cell.SubText>
           <Cell.Img height={16} width={16} source="icon-extLink" />
         </Cell.CellButton>
         {footer}
-      </View>;
+      </View>
+    );
   }
 
   _renderBottomButtons() {
-    return <View>
-        <Cell.CellButton onPress={this.props.onExternalLink.bind(this, 'faq')} testName="settings__external_link">
+    return (
+      <View>
+        <Cell.CellButton
+          onPress={this.props.onExternalLink.bind(this, 'faq')}
+          testName="settings__external_link">
           <Cell.Label>FAQs</Cell.Label>
           <Cell.Img height={16} width={16} source="icon-extLink" />
         </Cell.CellButton>
 
-        <Cell.CellButton onPress={this.props.onExternalLink.bind(this, 'guides')} testName="settings__external_link">
+        <Cell.CellButton
+          onPress={this.props.onExternalLink.bind(this, 'guides')}
+          testName="settings__external_link">
           <Cell.Label>Guides</Cell.Label>
           <Cell.Img height={16} width={16} source="icon-extLink" />
         </Cell.CellButton>
@@ -163,14 +191,17 @@ export default class Settings extends Component /*:: <Props>*/ {
           <Cell.Label>Report a problem</Cell.Label>
           <Cell.Img height={12} width={7} source="icon-chevron" />
         </Cell.CellButton>
-      </View>;
+      </View>
+    );
   }
 
   _renderQuitButton() {
-    return <View style={styles.settings__footer}>
+    return (
+      <View style={styles.settings__footer}>
         <AppButton.RedButton onPress={this.props.onQuit} testName="settings__quit">
           <AppButton.Label>Quit app</AppButton.Label>
         </AppButton.RedButton>
-      </View>;
+      </View>
+    );
   }
 }

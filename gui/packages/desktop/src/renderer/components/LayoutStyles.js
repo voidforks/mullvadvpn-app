@@ -6,14 +6,14 @@ import { colors } from '../../config';
 export default {
   layout: Styles.createViewStyle({
     flexDirection: 'column',
-    flex: 1
+    flex: 1,
   }),
   header: Styles.createViewStyle({
-    flex: 0
+    flex: 0,
   }),
   container: Styles.createViewStyle({
     flex: 1,
     backgroundColor: colors.blue,
-    overflow: 'hidden'
-  })
+    overflow: 'hidden',
+  }),
 };

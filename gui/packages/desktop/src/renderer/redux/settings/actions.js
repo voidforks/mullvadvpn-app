@@ -28,39 +28,40 @@
   | UpdateAllowLanAction
   | UpdateEnableIpv6Action;*/
 
-
 function updateRelay(relay /*: RelaySettingsRedux*/) /*: UpdateRelayAction*/ {
   return {
     type: 'UPDATE_RELAY',
-    relay: relay
+    relay: relay,
   };
 }
 
-function updateRelayLocations(relayLocations /*: Array<RelayLocationRedux>*/) /*: UpdateRelayLocationsAction*/ {
+function updateRelayLocations(
+  relayLocations /*: Array<RelayLocationRedux>*/,
+) /*: UpdateRelayLocationsAction*/ {
   return {
     type: 'UPDATE_RELAY_LOCATIONS',
-    relayLocations: relayLocations
+    relayLocations: relayLocations,
   };
 }
 
 function updateAutoConnect(autoConnect /*: boolean*/) /*: UpdateAutoConnectAction*/ {
   return {
     type: 'UPDATE_AUTO_CONNECT',
-    autoConnect
+    autoConnect,
   };
 }
 
 function updateAllowLan(allowLan /*: boolean*/) /*: UpdateAllowLanAction*/ {
   return {
     type: 'UPDATE_ALLOW_LAN',
-    allowLan
+    allowLan,
   };
 }
 
 function updateEnableIpv6(enableIpv6 /*: boolean*/) /*: UpdateEnableIpv6Action*/ {
   return {
     type: 'UPDATE_ENABLE_IPV6',
-    enableIpv6
+    enableIpv6,
   };
 }
 
@@ -69,5 +70,5 @@ export default {
   updateRelayLocations,
   updateAutoConnect,
   updateAllowLan,
-  updateEnableIpv6
+  updateEnableIpv6,
 };

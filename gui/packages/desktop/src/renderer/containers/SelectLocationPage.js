@@ -10,17 +10,18 @@ import RelaySettingsBuilder from '../lib/relay-settings-builder';
 /*:: import type { ReduxState, ReduxDispatch } from '../redux/store';*/
 /*:: import type { SharedRouteProps } from '../routes';*/
 
-
 const mapStateToProps = (state /*: ReduxState*/) => ({
-  settings: state.settings
+  settings: state.settings,
 });
 const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteProps*/) => {
   const history = bindActionCreators({ goBack }, dispatch);
   return {
     onClose: () => history.goBack(),
-    onSelect: async relayLocation => {
+    onSelect: async (relayLocation) => {
       try {
-        const relayUpdate = RelaySettingsBuilder.normal().location.fromRaw(relayLocation).build();
+        const relayUpdate = RelaySettingsBuilder.normal()
+          .location.fromRaw(relayLocation)
+          .build();
 
         await props.app.updateRelaySettings(relayUpdate);
         await props.app.fetchRelaySettings();
@@ -30,8 +31,11 @@ const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteP
       } catch (e) {
         log.error(`Failed to select server: ${e.message}`);
       }
-    }
+    },
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(SelectLocation);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(SelectLocation);

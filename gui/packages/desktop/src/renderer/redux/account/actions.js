@@ -40,57 +40,58 @@
   | UpdateAccountHistoryAction
   | UpdateAccountExpiryAction;*/
 
-
 function startLogin(accountToken /*: AccountToken*/) /*: StartLoginAction*/ {
   return {
     type: 'START_LOGIN',
-    accountToken: accountToken
+    accountToken: accountToken,
   };
 }
 
 function loginSuccessful() /*: LoginSuccessfulAction*/ {
   return {
-    type: 'LOGIN_SUCCESSFUL'
+    type: 'LOGIN_SUCCESSFUL',
   };
 }
 
 function loginFailed(error /*: Error*/) /*: LoginFailedAction*/ {
   return {
     type: 'LOGIN_FAILED',
-    error
+    error,
   };
 }
 
 function loggedOut() /*: LoggedOutAction*/ {
   return {
-    type: 'LOGGED_OUT'
+    type: 'LOGGED_OUT',
   };
 }
 
 function resetLoginError() /*: ResetLoginErrorAction*/ {
   return {
-    type: 'RESET_LOGIN_ERROR'
+    type: 'RESET_LOGIN_ERROR',
   };
 }
 
 function updateAccountToken(token /*: AccountToken*/) /*: UpdateAccountTokenAction*/ {
   return {
     type: 'UPDATE_ACCOUNT_TOKEN',
-    token
+    token,
   };
 }
 
-function updateAccountHistory(accountHistory /*: Array<AccountToken>*/) /*: UpdateAccountHistoryAction*/ {
+function updateAccountHistory(
+  accountHistory /*: Array<AccountToken>*/,
+) /*: UpdateAccountHistoryAction*/ {
   return {
     type: 'UPDATE_ACCOUNT_HISTORY',
-    accountHistory
+    accountHistory,
   };
 }
 
 function updateAccountExpiry(expiry /*: string*/) /*: UpdateAccountExpiryAction*/ {
   return {
     type: 'UPDATE_ACCOUNT_EXPIRY',
-    expiry
+    expiry,
   };
 }
 
@@ -102,5 +103,5 @@ export default {
   resetLoginError,
   updateAccountToken,
   updateAccountHistory,
-  updateAccountExpiry
+  updateAccountExpiry,
 };

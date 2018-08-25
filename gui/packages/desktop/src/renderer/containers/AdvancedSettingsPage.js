@@ -11,7 +11,6 @@ import RelaySettingsBuilder from '../lib/relay-settings-builder';
 /*:: import type { RelaySettingsRedux } from '../redux/settings/reducers';*/
 /*:: import type { SharedRouteProps } from '../routes';*/
 
-
 const mapStateToProps = (state /*: ReduxState*/) => {
   const protocolAndPort = mapRelaySettingsToProtocolAndPort(state.settings.relaySettings);
 
@@ -23,7 +22,7 @@ const mapRelaySettingsToProtocolAndPort = (relaySettings /*: RelaySettingsRedux*
     const { protocol, port } = relaySettings.normal;
     return {
       protocol: protocol === 'any' ? 'Automatic' : protocol,
-      port: port === 'any' ? 'Automatic' : port
+      port: port === 'any' ? 'Automatic' : port,
     };
   } else if (relaySettings.custom_tunnel_endpoint) {
     const { protocol, port } = relaySettings.custom_tunnel_endpoint;
@@ -40,18 +39,20 @@ const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteP
       history.goBack();
     },
     onUpdate: async (protocol, port) => {
-      const relayUpdate = RelaySettingsBuilder.normal().tunnel.openvpn(openvpn => {
-        if (protocol === 'Automatic') {
-          openvpn.protocol.any();
-        } else {
-          openvpn.protocol.exact(protocol.toLowerCase());
-        }
-        if (port === 'Automatic') {
-          openvpn.port.any();
-        } else {
-          openvpn.port.exact(port);
-        }
-      }).build();
+      const relayUpdate = RelaySettingsBuilder.normal()
+        .tunnel.openvpn((openvpn) => {
+          if (protocol === 'Automatic') {
+            openvpn.protocol.any();
+          } else {
+            openvpn.protocol.exact(protocol.toLowerCase());
+          }
+          if (port === 'Automatic') {
+            openvpn.port.any();
+          } else {
+            openvpn.port.exact(port);
+          }
+        })
+        .build();
 
       try {
         await props.app.updateRelaySettings(relayUpdate);
@@ -61,14 +62,17 @@ const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteP
       }
     },
 
-    setEnableIpv6: async enableIpv6 => {
+    setEnableIpv6: async (enableIpv6) => {
       try {
         await props.app.setEnableIpv6(enableIpv6);
       } catch (e) {
         log.error('Failed to update enable IPv6', e.message);
       }
-    }
+    },
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(AdvancedSettings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(AdvancedSettings);

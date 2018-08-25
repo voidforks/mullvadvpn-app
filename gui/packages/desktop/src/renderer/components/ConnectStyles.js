@@ -5,7 +5,7 @@ import { colors } from '../../config';
 
 export default {
   connect: Styles.createViewStyle({
-    flex: 1
+    flex: 1,
   }),
   map: Styles.createViewStyle({
     position: 'absolute',
@@ -15,23 +15,23 @@ export default {
     bottom: 0,
     zIndex: 0,
     height: '100%',
-    width: '100%'
+    width: '100%',
   }),
   container: Styles.createViewStyle({
     flexDirection: 'column',
     flex: 1,
-    position: 'relative' /* need this for z-index to work to cover map */
-    , zIndex: 1
+    position: 'relative' /* need this for z-index to work to cover map */,
+    zIndex: 1,
   }),
   footer: Styles.createViewStyle({
     flex: 0,
     paddingBottom: 16,
     paddingLeft: 24,
-    paddingRight: 24
+    paddingRight: 24,
   }),
   blocking_container: Styles.createViewStyle({
     width: '100%',
-    position: 'absolute'
+    position: 'absolute',
   }),
   blocking_icon: Styles.createViewStyle({
     width: 10,
@@ -41,7 +41,7 @@ export default {
     borderRadius: 5,
     marginTop: 4,
     marginRight: 8,
-    backgroundColor: colors.red
+    backgroundColor: colors.red,
   }),
   status: Styles.createViewStyle({
     paddingTop: 0,
@@ -49,17 +49,17 @@ export default {
     paddingRight: 24,
     paddingBottom: 0,
     marginTop: 186,
-    flex: 1
+    flex: 1,
   }),
   status_icon: Styles.createViewStyle({
     position: 'absolute',
     alignSelf: 'center',
     width: 60,
     height: 60,
-    marginTop: 94
+    marginTop: 94,
   }),
   switch_location_button: Styles.createViewStyle({
-    marginBottom: 16
+    marginBottom: 16,
   }),
 
   blocking_message: Styles.createTextStyle({
@@ -74,7 +74,7 @@ export default {
     paddingRight: 20,
     paddingBottom: 8,
     color: colors.white60,
-    backgroundColor: colors.blue
+    backgroundColor: colors.blue,
   }),
   server_label: Styles.createTextStyle({
     fontFamily: 'DINPro',
@@ -84,7 +84,7 @@ export default {
     letterSpacing: -0.7,
     color: colors.white,
     marginBottom: 7,
-    flex: 0
+    flex: 0,
   }),
   error_title: Styles.createTextStyle({
     fontFamily: 'DINPro',
@@ -92,14 +92,14 @@ export default {
     fontWeight: '900',
     lineHeight: 40,
     color: colors.white,
-    marginBottom: 8
+    marginBottom: 8,
   }),
   error_message: Styles.createTextStyle({
     fontFamily: 'Open Sans',
     fontSize: 13,
     fontWeight: '600',
     color: colors.white,
-    marginBottom: 24
+    marginBottom: 24,
   }),
   status_security: Styles.createTextStyle({
     fontFamily: 'Open Sans',
@@ -107,22 +107,22 @@ export default {
     fontWeight: '800',
     lineHeight: 22,
     marginBottom: 4,
-    color: colors.white
+    color: colors.white,
   }),
   status_security__secure: Styles.createTextStyle({
-    color: colors.green
+    color: colors.green,
   }),
   status_security__unsecured: Styles.createTextStyle({
-    color: colors.red
+    color: colors.red,
   }),
   status_ipaddress: Styles.createTextStyle({
     fontFamily: 'Open Sans',
     fontSize: 16,
     fontWeight: '800',
-    color: colors.white
+    color: colors.white,
   }),
   status_ipaddress__invisible: Styles.createTextStyle({
-    opacity: 0
+    opacity: 0,
   }),
   status_location: Styles.createTextStyle({
     fontFamily: 'DINPro',
@@ -132,6 +132,6 @@ export default {
     overflow: 'hidden',
     letterSpacing: -0.9,
     color: colors.white,
-    marginBottom: 4
-  })
+    marginBottom: 4,
+  }),
 };

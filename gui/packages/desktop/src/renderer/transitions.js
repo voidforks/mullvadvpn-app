@@ -7,7 +7,6 @@ import TransitionRule from './lib/transition-rule';
   duration: number,
 };*/
 
-
 /**
  * Transition descriptors
  */
@@ -18,30 +17,37 @@ const transitions /*: TransitionMap*/ = {
   slide: {
     forward: {
       name: 'slide-up',
-      duration: 450
+      duration: 450,
     },
     backward: {
       name: 'slide-down',
-      duration: 450
-    }
+      duration: 450,
+    },
   },
   push: {
     forward: {
       name: 'push',
-      duration: 450
+      duration: 450,
     },
     backward: {
       name: 'pop',
-      duration: 450
-    }
-  }
+      duration: 450,
+    },
+  },
 };
 
 /**
  * Transition rules
  * (null) is used to indicate any route.
  */
-const transitionRules = [r('/settings', '/settings/account', transitions.push), r('/settings', '/settings/preferences', transitions.push), r('/settings', '/settings/advanced', transitions.push), r('/settings', '/settings/support', transitions.push), r(null, '/settings', transitions.slide), r(null, '/select-location', transitions.slide)];
+const transitionRules = [
+  r('/settings', '/settings/account', transitions.push),
+  r('/settings', '/settings/preferences', transitions.push),
+  r('/settings', '/settings/advanced', transitions.push),
+  r('/settings', '/settings/support', transitions.push),
+  r(null, '/settings', transitions.slide),
+  r(null, '/select-location', transitions.slide),
+];
 
 /**
  * Calculate TransitionGroup props.
@@ -49,7 +55,10 @@ const transitionRules = [r('/settings', '/settings/account', transitions.push), 
  * @param {string} [fromRoute] - source route
  * @param {string} toRoute     - target route
  */
-export function getTransitionProps(fromRoute /*: ?string*/, toRoute /*: string*/) /*: TransitionGroupProps*/ {
+export function getTransitionProps(
+  fromRoute /*: ?string*/,
+  toRoute /*: string*/,
+) /*: TransitionGroupProps*/ {
   // ignore initial transition and transition between the same routes
   if (!fromRoute || fromRoute === toRoute) {
     return noTransitionProps();
@@ -73,7 +82,7 @@ function toTransitionGroupProps(descriptor /*: TransitionDescriptor*/) /*: Trans
   const { name, duration } = descriptor;
   return {
     name: name,
-    duration: duration
+    duration: duration,
   };
 }
 
@@ -83,7 +92,7 @@ function toTransitionGroupProps(descriptor /*: TransitionDescriptor*/) /*: Trans
 function noTransitionProps() /*: TransitionGroupProps*/ {
   return {
     name: '',
-    duration: 0
+    duration: 0,
   };
 }
 

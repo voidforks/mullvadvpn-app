@@ -7,8 +7,7 @@ import { screen } from 'electron';
   getPosition(window: BrowserWindow): Position;
 }*/
 
-
-class StandaloneWindowPositioning implements /*:: WindowPositioning*/ {
+class StandaloneWindowPositioning /*:: implements WindowPositioning*/ {
   getPosition(window /*: BrowserWindow*/) /*: Position*/ {
     const windowBounds = window.getBounds();
 
@@ -24,9 +23,8 @@ class StandaloneWindowPositioning implements /*:: WindowPositioning*/ {
   }
 }
 
-class AttachedToTrayWindowPositioning implements /*:: WindowPositioning*/ {
+class AttachedToTrayWindowPositioning /*:: implements WindowPositioning*/ {
   /*:: _tray: Tray;*/
-
 
   constructor(tray /*: Tray*/) {
     this._tray = tray;
@@ -43,7 +41,7 @@ class AttachedToTrayWindowPositioning implements /*:: WindowPositioning*/ {
     const maxY = workArea.y + workArea.height - windowBounds.height;
 
     let x = 0,
-        y = 0;
+      y = 0;
     switch (placement) {
       case 'top':
         x = trayBounds.x + (trayBounds.width - windowBounds.width) * 0.5;
@@ -83,21 +81,20 @@ class AttachedToTrayWindowPositioning implements /*:: WindowPositioning*/ {
         // macOS has menubar always placed at the top
         return 'top';
 
-      case 'win32':
-        {
-          // taskbar occupies some part of the screen excluded from work area
-          const primaryDisplay = screen.getPrimaryDisplay();
-          const displaySize = primaryDisplay.size;
-          const workArea = primaryDisplay.workArea;
+      case 'win32': {
+        // taskbar occupies some part of the screen excluded from work area
+        const primaryDisplay = screen.getPrimaryDisplay();
+        const displaySize = primaryDisplay.size;
+        const workArea = primaryDisplay.workArea;
 
-          if (workArea.width < displaySize.width) {
-            return workArea.x > 0 ? 'left' : 'right';
-          } else if (workArea.height < displaySize.height) {
-            return workArea.y > 0 ? 'top' : 'bottom';
-          } else {
-            return 'none';
-          }
+        if (workArea.width < displaySize.width) {
+          return workArea.x > 0 ? 'left' : 'right';
+        } else if (workArea.height < displaySize.height) {
+          return workArea.y > 0 ? 'top' : 'bottom';
+        } else {
+          return 'none';
         }
+      }
 
       default:
         return 'none';
@@ -170,7 +167,11 @@ export default class WindowController {
     });
   }
 
-  _onDisplayMetricsChanged = (_event /*: any*/, _display /*: Display*/, changedMetrics /*: Array<string>*/) => {
+  _onDisplayMetricsChanged = (
+    _event /*: any*/,
+    _display /*: Display*/,
+    changedMetrics /*: Array<string>*/,
+  ) => {
     if (changedMetrics.includes('workArea') && this._window.isVisible()) {
       this._updatePosition();
     }

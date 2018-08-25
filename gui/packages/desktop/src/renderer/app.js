@@ -4,7 +4,11 @@ import log from 'electron-log';
 import * as React from 'react';
 import { bindActionCreators } from 'redux';
 import { Provider } from 'react-redux';
-import { ConnectedRouter, push as pushHistory, replace as replaceHistory } from 'connected-react-router';
+import {
+  ConnectedRouter,
+  push as pushHistory,
+  replace as replaceHistory,
+} from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import { remote, webFrame, ipcRenderer } from 'electron';
 
@@ -33,7 +37,6 @@ import daemonActions from './redux/daemon/actions';
 /*:: import type { ConnectionState } from './redux/connection/reducers';*/
 /*:: import type { TrayIconType } from '../main/tray-icon-controller';*/
 
-
 export default class AppRenderer {
   _notificationController = new NotificationController();
   _daemonRpc /*: DaemonRpcProtocol*/ = new DaemonRpc();
@@ -59,17 +62,20 @@ export default class AppRenderer {
       settings: bindActionCreators(settingsActions, dispatch),
       version: bindActionCreators(versionActions, dispatch),
       daemon: bindActionCreators(daemonActions, dispatch),
-      history: bindActionCreators({
-        push: pushHistory,
-        replace: replaceHistory
-      }, dispatch)
+      history: bindActionCreators(
+        {
+          push: pushHistory,
+          replace: replaceHistory,
+        },
+        dispatch,
+      ),
     };
 
     this._openConnectionObserver = this._daemonRpc.addOpenConnectionObserver(() => {
       this._onOpenConnection();
     });
 
-    this._closeConnectionObserver = this._daemonRpc.addCloseConnectionObserver(error => {
+    this._closeConnectionObserver = this._daemonRpc.addCloseConnectionObserver((error) => {
       this._onCloseConnection(error);
     });
 
@@ -103,11 +109,13 @@ export default class AppRenderer {
   }
 
   renderView() {
-    return <Provider store={this._reduxStore}>
+    return (
+      <Provider store={this._reduxStore}>
         <ConnectedRouter history={this._memoryHistory}>
           {makeRoutes(this._reduxStore.getState, { app: this })}
         </ConnectedRouter>
-      </Provider>;
+      </Provider>
+    );
   }
 
   connect() {
@@ -187,7 +195,11 @@ export default class AppRenderer {
     const actions = this._reduxActions;
 
     try {
-      await Promise.all([this.disconnectTunnel(), this._daemonRpc.setAccount(null), this._fetchAccountHistory()]);
+      await Promise.all([
+        this.disconnectTunnel(),
+        this._daemonRpc.setAccount(null),
+        this._fetchAccountHistory(),
+      ]);
       actions.account.loggedOut();
       actions.history.replace('/login');
 
@@ -252,23 +264,23 @@ export default class AppRenderer {
       }
 
       actions.settings.updateRelay({
-        normal: payload
+        normal: payload,
       });
     } else if (relaySettings.custom_tunnel_endpoint) {
       const custom_tunnel_endpoint = relaySettings.custom_tunnel_endpoint;
       const {
         host,
         tunnel: {
-          openvpn: { port, protocol }
-        }
+          openvpn: { port, protocol },
+        },
       } = custom_tunnel_endpoint;
 
       actions.settings.updateRelay({
         custom_tunnel_endpoint: {
           host,
           port,
-          protocol
-        }
+          protocol,
+        },
       });
     }
   }
@@ -321,17 +333,17 @@ export default class AppRenderer {
 
     log.info('Got relay locations');
 
-    const storedLocations = locations.countries.map(country => ({
+    const storedLocations = locations.countries.map((country) => ({
       name: country.name,
       code: country.code,
-      hasActiveRelays: country.cities.some(city => city.has_active_relays),
-      cities: country.cities.map(city => ({
+      hasActiveRelays: country.cities.some((city) => city.has_active_relays),
+      cities: country.cities.map((city) => ({
         name: city.name,
         code: city.code,
         latitude: city.latitude,
         longitude: city.longitude,
-        hasActiveRelays: city.has_active_relays
-      }))
+        hasActiveRelays: city.has_active_relays,
+      })),
     }));
 
     actions.settings.updateRelayLocations(storedLocations);
@@ -349,7 +361,7 @@ export default class AppRenderer {
       city: location.city,
       latitude: location.latitude,
       longitude: location.longitude,
-      mullvadExitIp: location.mullvad_exit_ip
+      mullvadExitIp: location.mullvad_exit_ip,
     };
 
     actions.connection.newLocation(locationUpdate);
@@ -499,7 +511,7 @@ export default class AppRenderer {
   }
 
   _requestCredentials() /*: Promise<RpcCredentials>*/ {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       ipcRenderer.once('daemon-connection-ready', (_event, credentials /*: RpcCredentials*/) => {
         resolve(credentials);
       });
@@ -516,7 +528,11 @@ export default class AppRenderer {
       if (newState) {
         const connectionState = this._securityStateToConnectionState(newState);
 
-        log.debug(`Got new state from daemon {state: ${newState.state}, target_state: ${newState.target_state}}, translated to '${connectionState}'`);
+        log.debug(
+          `Got new state from daemon {state: ${newState.state}, target_state: ${
+            newState.target_state
+          }}, translated to '${connectionState}'`,
+        );
 
         this._updateConnectionState(connectionState);
         this._refreshStateOnChange();
@@ -525,13 +541,23 @@ export default class AppRenderer {
   }
 
   _fetchInitialState() {
-    return Promise.all([this._fetchSecurityState(), this.fetchRelaySettings(), this._fetchRelayLocations(), this._fetchAllowLan(), this._fetchAutoConnect(), this._fetchLocation(), this._fetchAccountHistory(), this._fetchTunnelOptions(), this._fetchVersionInfo()]);
+    return Promise.all([
+      this._fetchSecurityState(),
+      this.fetchRelaySettings(),
+      this._fetchRelayLocations(),
+      this._fetchAllowLan(),
+      this._fetchAutoConnect(),
+      this._fetchLocation(),
+      this._fetchAccountHistory(),
+      this._fetchTunnelOptions(),
+      this._fetchVersionInfo(),
+    ]);
   }
 
   _updateTrayIcon(connectionState /*: ConnectionState*/) {
     const iconTypes /*: { [ConnectionState]: TrayIconType }*/ = {
       connected: 'secured',
-      connecting: 'securing'
+      connecting: 'securing',
     };
     const type = iconTypes[connectionState] || 'unsecured';
 
@@ -587,7 +613,7 @@ export default class AppRenderer {
         this._notificationController.show('Unsecured');
         break;
       default:
-        log.error(`Unexpected ConnectionState: ${(connectionState /*: empty*/)}`);
+        log.error(`Unexpected ConnectionState: ${connectionState /*: empty*/}`);
         return;
     }
   }

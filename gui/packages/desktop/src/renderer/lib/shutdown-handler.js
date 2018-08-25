@@ -10,7 +10,7 @@ import { ipcRenderer } from 'electron';
  * the allocated time (see SHUTDOWN_TIMEOUT).
  */
 export default function setShutdownHandler(handler /*: () => Promise<void>*/) {
-  ipcRenderer.once('app-shutdown', async event => {
+  ipcRenderer.once('app-shutdown', async (event) => {
     try {
       await handler();
     } catch (error) {

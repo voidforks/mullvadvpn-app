@@ -13,12 +13,10 @@
   descriptor: TransitionDescriptor,
 };*/
 
-
 export default class TransitionRule {
   /*:: _from: ?string;*/
   /*:: _to: string;*/
   /*:: _fork: TransitionFork;*/
-
 
   constructor(from /*: ?string*/, to /*: string*/, fork /*: TransitionFork*/) {
     this._from = from;
@@ -30,14 +28,14 @@ export default class TransitionRule {
     if ((!this._from || this._from === fromRoute) && this._to === toRoute) {
       return {
         direction: 'forward',
-        descriptor: this._fork['forward']
+        descriptor: this._fork['forward'],
       };
     }
 
     if ((!this._from || this._from === toRoute) && this._to === fromRoute) {
       return {
         direction: 'backward',
-        descriptor: this._fork['backward']
+        descriptor: this._fork['backward'],
       };
     }
 

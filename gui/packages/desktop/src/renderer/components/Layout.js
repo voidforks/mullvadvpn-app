@@ -9,9 +9,11 @@ export class Header extends Component /*:: <React.ElementProps<typeof HeaderBar>
   static defaultProps = HeaderBar.defaultProps;
 
   render() {
-    return <View style={[styles.header, this.props.style]}>
+    return (
+      <View style={[styles.header, this.props.style]}>
         <HeaderBar barStyle={this.props.barStyle}>{this.props.children}</HeaderBar>
-      </View>;
+      </View>
+    );
   }
 }
 

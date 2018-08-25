@@ -21,10 +21,9 @@ import styles from './PreferencesStyles';
   autoStart: boolean,
 };*/
 
-
 export default class Preferences extends Component /*:: <PreferencesProps, State>*/ {
   state = {
-    autoStart: false
+    autoStart: false,
   };
 
   constructor(props /*: PreferencesProps*/) {
@@ -33,7 +32,8 @@ export default class Preferences extends Component /*:: <PreferencesProps, State
   }
 
   render() {
-    return <Layout>
+    return (
+      <Layout>
         <Container>
           <View style={styles.preferences}>
             <NavigationBar>
@@ -84,14 +84,17 @@ export default class Preferences extends Component /*:: <PreferencesProps, State
                 </View>
                 <View style={styles.preferences__cell_footer}>
                   <Text style={styles.preferences__cell_footer_label}>
-                    {'Allows access to other devices on the same network for sharing, printing etc.'}
+                    {
+                      'Allows access to other devices on the same network for sharing, printing etc.'
+                    }
                   </Text>
                 </View>
               </View>
             </View>
           </View>
         </Container>
-      </Layout>;
+      </Layout>
+    );
   }
 
   _onChangeAutoStart = (autoStart /*: boolean*/) => {

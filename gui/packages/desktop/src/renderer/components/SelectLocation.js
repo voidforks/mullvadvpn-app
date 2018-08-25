@@ -26,14 +26,12 @@ import styles from './SelectLocationStyles';
   expanded: Array<string>,
 };*/
 
-
 export default class SelectLocation extends React.Component /*:: <SelectLocationProps, State>*/ {
   /*:: _selectedCell: ?Cell.CellButton;*/
   /*:: _scrollView: ?CustomScrollbars;*/
 
-
   state = {
-    expanded: []
+    expanded: [],
   };
 
   constructor(props /*: SelectLocationProps*/, context /*:: ?: any*/) {
@@ -69,7 +67,8 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
   }
 
   render() {
-    return <Layout>
+    return (
+      <Layout>
         <Container>
           <View style={styles.select_location}>
             <NavigationBar>
@@ -80,7 +79,7 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
                 <HeaderTitle>Select location</HeaderTitle>
               </SettingsHeader>
 
-              <CustomScrollbars autoHide={true} ref={ref => this._scrollView = ref}>
+              <CustomScrollbars autoHide={true} ref={(ref) => (this._scrollView = ref)}>
                 <View style={styles.content}>
                   <SettingsHeader style={styles.subtitle_header}>
                     <HeaderSubTitle>
@@ -89,15 +88,16 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
                     </HeaderSubTitle>
                   </SettingsHeader>
 
-                  {this.props.settings.relayLocations.map(relayCountry => {
-                  return this._renderCountry(relayCountry);
-                })}
+                  {this.props.settings.relayLocations.map((relayCountry) => {
+                    return this._renderCountry(relayCountry);
+                  })}
                 </View>
               </CustomScrollbars>
             </View>
           </View>
         </Container>
-      </Layout>;
+      </Layout>
+    );
   }
 
   _isSelected(selectedLocation /*: RelayLocation*/) {
@@ -105,7 +105,11 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
     if (relaySettings.normal) {
       const otherLocation = relaySettings.normal.location;
 
-      if (selectedLocation.country && otherLocation.country && selectedLocation.country === otherLocation.country) {
+      if (
+        selectedLocation.country &&
+        otherLocation.country &&
+        selectedLocation.country === otherLocation.country
+      ) {
         return true;
       }
 
@@ -113,14 +117,17 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
         const selectedCity = selectedLocation.city;
         const otherCity = otherLocation.city;
 
-        return selectedCity.length === otherCity.length && selectedCity.every((v, i) => v === otherCity[i]);
+        return (
+          selectedCity.length === otherCity.length &&
+          selectedCity.every((v, i) => v === otherCity[i])
+        );
       }
     }
     return false;
   }
 
   _toggleCollapse = (countryCode /*: string*/) => {
-    this.setState(state => {
+    this.setState((state) => {
       const expanded = state.expanded.slice();
       const index = expanded.indexOf(countryCode);
       if (index === -1) {
@@ -135,41 +142,69 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
   _relayStatusIndicator(active /*: boolean*/, isSelected /*: boolean*/) {
     const statusClass = active ? styles.relay_status__active : styles.relay_status__inactive;
 
-    return isSelected ? <Cell.Img style={styles.tick_icon} source="icon-tick" height={24} width={24} /> : <View style={[styles.relay_status, statusClass]} />;
+    return isSelected ? (
+      <Cell.Img style={styles.tick_icon} source="icon-tick" height={24} width={24} />
+    ) : (
+      <View style={[styles.relay_status, statusClass]} />
+    );
   }
 
   _renderCountry(relayCountry /*: RelayLocationRedux*/) {
     const isSelected = this._isSelected({ country: relayCountry.code });
 
-    const onRef = isSelected ? element => {
-      this._selectedCell = element;
-    } : undefined;
+    const onRef = isSelected
+      ? (element) => {
+          this._selectedCell = element;
+        }
+      : undefined;
 
     // either expanded by user or when the city selected within the country
     const isExpanded = this.state.expanded.includes(relayCountry.code);
 
-    const handleSelect = relayCountry.hasActiveRelays && !isSelected ? () => {
-      this.props.onSelect({ country: relayCountry.code });
-    } : undefined;
+    const handleSelect =
+      relayCountry.hasActiveRelays && !isSelected
+        ? () => {
+            this.props.onSelect({ country: relayCountry.code });
+          }
+        : undefined;
 
-    const handleCollapse = e => {
+    const handleCollapse = (e) => {
       this._toggleCollapse(relayCountry.code);
       e.stopPropagation();
     };
 
-    return <View key={relayCountry.code} style={styles.country}>
-        <Cell.CellButton cellHoverStyle={isSelected ? styles.cell_selected : null} style={isSelected ? styles.cell_selected : styles.cell} onPress={handleSelect} disabled={!relayCountry.hasActiveRelays} testName="country" ref={onRef}>
+    return (
+      <View key={relayCountry.code} style={styles.country}>
+        <Cell.CellButton
+          cellHoverStyle={isSelected ? styles.cell_selected : null}
+          style={isSelected ? styles.cell_selected : styles.cell}
+          onPress={handleSelect}
+          disabled={!relayCountry.hasActiveRelays}
+          testName="country"
+          ref={onRef}>
           {this._relayStatusIndicator(relayCountry.hasActiveRelays, isSelected)}
 
           <Cell.Label>{relayCountry.name}</Cell.Label>
 
-          {relayCountry.cities.length > 1 ? <Cell.Img style={styles.collapse_button} hoverStyle={styles.expand_chevron_hover} onPress={handleCollapse} source={isExpanded ? 'icon-chevron-up' : 'icon-chevron-down'} height={24} width={24} /> : null}
+          {relayCountry.cities.length > 1 ? (
+            <Cell.Img
+              style={styles.collapse_button}
+              hoverStyle={styles.expand_chevron_hover}
+              onPress={handleCollapse}
+              source={isExpanded ? 'icon-chevron-up' : 'icon-chevron-down'}
+              height={24}
+              width={24}
+            />
+          ) : null}
         </Cell.CellButton>
 
-        {relayCountry.cities.length > 1 && <Accordion height={isExpanded ? 'auto' : 0}>
-            {relayCountry.cities.map(relayCity => this._renderCity(relayCountry.code, relayCity))}
-          </Accordion>}
-      </View>;
+        {relayCountry.cities.length > 1 && (
+          <Accordion height={isExpanded ? 'auto' : 0}>
+            {relayCountry.cities.map((relayCity) => this._renderCity(relayCountry.code, relayCity))}
+          </Accordion>
+        )}
+      </View>
+    );
   }
 
   _renderCity(countryCode /*: string*/, relayCity /*: RelayLocationCityRedux*/) {
@@ -177,18 +212,32 @@ export default class SelectLocation extends React.Component /*:: <SelectLocation
 
     const isSelected = this._isSelected(relayLocation);
 
-    const onRef = isSelected ? element => {
-      this._selectedCell = element;
-    } : undefined;
+    const onRef = isSelected
+      ? (element) => {
+          this._selectedCell = element;
+        }
+      : undefined;
 
-    const handleSelect = relayCity.hasActiveRelays && !isSelected ? () => {
-      this.props.onSelect(relayLocation);
-    } : undefined;
+    const handleSelect =
+      relayCity.hasActiveRelays && !isSelected
+        ? () => {
+            this.props.onSelect(relayLocation);
+          }
+        : undefined;
 
-    return <Cell.CellButton key={`${countryCode}_${relayCity.code}`} onPress={handleSelect} disabled={!relayCity.hasActiveRelays} cellHoverStyle={isSelected ? styles.sub_cell__selected : null} style={isSelected ? styles.sub_cell__selected : styles.sub_cell} testName="city" ref={onRef}>
+    return (
+      <Cell.CellButton
+        key={`${countryCode}_${relayCity.code}`}
+        onPress={handleSelect}
+        disabled={!relayCity.hasActiveRelays}
+        cellHoverStyle={isSelected ? styles.sub_cell__selected : null}
+        style={isSelected ? styles.sub_cell__selected : styles.sub_cell}
+        testName="city"
+        ref={onRef}>
         {this._relayStatusIndicator(relayCity.hasActiveRelays, isSelected)}
 
         <Cell.Label>{relayCity.name}</Cell.Label>
-      </Cell.CellButton>;
+      </Cell.CellButton>
+    );
   }
 }

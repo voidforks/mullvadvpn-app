@@ -21,10 +21,15 @@ import { getTransitionProps } from './transitions';
   app: App,
 };*/
 
-
-export default function makeRoutes(getState /*: ReduxGetState*/, componentProps /*: SharedRouteProps*/) /*: React.Element<*>*/ {
+export default function makeRoutes(
+  getState /*: ReduxGetState*/,
+  componentProps /*: SharedRouteProps*/,
+) /*: React.Element<*>*/ {
   // Merge props and render component
-  const renderMergedProps = (ComponentClass /*: React.ComponentType<*>*/, ...rest /*: Array<Object>*/) /*: React.Element<*>*/ => {
+  const renderMergedProps = (
+    ComponentClass /*: React.ComponentType<*>*/,
+    ...rest /*: Array<Object>*/
+  ) /*: React.Element<*>*/ => {
     const finalProps = Object.assign({}, componentProps, ...rest);
     return <ComponentClass {...finalProps} />;
   };
@@ -32,66 +37,89 @@ export default function makeRoutes(getState /*: ReduxGetState*/, componentProps 
   // Renders public route
   // example: <PublicRoute path="/" component={ MyComponent } />
   const PublicRoute = ({ component, ...otherProps }) => {
-    return <Route {...otherProps} render={routeProps => {
-      return renderMergedProps(component, routeProps, otherProps);
-    }} />;
+    return (
+      <Route
+        {...otherProps}
+        render={(routeProps) => {
+          return renderMergedProps(component, routeProps, otherProps);
+        }}
+      />
+    );
   };
 
   // Renders protected route that requires authentication, otherwise redirects to /
   // example: <PrivateRoute path="/protected" component={ MyComponent } />
   const PrivateRoute = ({ component, ...otherProps }) => {
-    return <Route {...otherProps} render={routeProps => {
-      const { account } = getState();
-      const isLoggedIn = account.status === 'ok';
+    return (
+      <Route
+        {...otherProps}
+        render={(routeProps) => {
+          const { account } = getState();
+          const isLoggedIn = account.status === 'ok';
 
-      if (isLoggedIn) {
-        return renderMergedProps(component, routeProps, otherProps);
-      } else {
-        return <Redirect to={'/login'} />;
-      }
-    }} />;
+          if (isLoggedIn) {
+            return renderMergedProps(component, routeProps, otherProps);
+          } else {
+            return <Redirect to={'/login'} />;
+          }
+        }}
+      />
+    );
   };
 
   // Renders login route that is only available to non-authenticated
   // users. Otherwise this route redirects user to /connect.
   // example: <LoginRoute path="/login" component={ MyComponent } />
   const LoginRoute = ({ component, ...otherProps }) => {
-    return <Route {...otherProps} render={routeProps => {
-      const { account } = getState();
-      const isLoggedIn = account.status === 'ok';
+    return (
+      <Route
+        {...otherProps}
+        render={(routeProps) => {
+          const { account } = getState();
+          const isLoggedIn = account.status === 'ok';
 
-      if (isLoggedIn) {
-        return <Redirect to={'/connect'} />;
-      } else {
-        return renderMergedProps(component, routeProps, otherProps);
-      }
-    }} />;
+          if (isLoggedIn) {
+            return <Redirect to={'/connect'} />;
+          } else {
+            return renderMergedProps(component, routeProps, otherProps);
+          }
+        }}
+      />
+    );
   };
 
   // Renders launch route that is only available when daemon is not connected.
   // Otherwise this route redirects user to /login.
   // example: <LaunchRoute path="/" component={ MyComponent } />
   const LaunchRoute = ({ component, ...otherProps }) => {
-    return <Route {...otherProps} render={routeProps => {
-      const { daemon } = getState();
-      if (daemon.isConnected) {
-        return <Redirect to={'/login'} />;
-      } else {
-        return renderMergedProps(component, routeProps, otherProps);
-      }
-    }} />;
+    return (
+      <Route
+        {...otherProps}
+        render={(routeProps) => {
+          const { daemon } = getState();
+          if (daemon.isConnected) {
+            return <Redirect to={'/login'} />;
+          } else {
+            return renderMergedProps(component, routeProps, otherProps);
+          }
+        }}
+      />
+    );
   };
 
   // store previous route
   let previousRoute /*: ?string*/;
 
-  return <Route render={({ location }) => {
-    const toRoute = location.pathname;
-    const fromRoute = previousRoute;
-    const transitionProps = getTransitionProps(fromRoute, toRoute);
-    previousRoute = toRoute;
+  return (
+    <Route
+      render={({ location }) => {
+        const toRoute = location.pathname;
+        const fromRoute = previousRoute;
+        const transitionProps = getTransitionProps(fromRoute, toRoute);
+        previousRoute = toRoute;
 
-    return <PlatformWindow>
+        return (
+          <PlatformWindow>
             <TransitionContainer {...transitionProps}>
               <Switch key={location.key} location={location}>
                 <LaunchRoute exact path="/" component={LaunchPage} />
@@ -105,6 +133,9 @@ export default function makeRoutes(getState /*: ReduxGetState*/, componentProps 
                 <PrivateRoute exact path="/select-location" component={SelectLocationPage} />
               </Switch>
             </TransitionContainer>
-          </PlatformWindow>;
-  }} />;
+          </PlatformWindow>
+        );
+      }}
+    />
+  );
 }

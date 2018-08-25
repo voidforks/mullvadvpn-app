@@ -49,8 +49,10 @@ import daemonActions from './daemon/actions';
 /*:: export type ReduxGetState = () => ReduxState;*/
 /*:: export type ReduxDispatch = (action: ReduxAction) => any;*/
 
-
-export default function configureStore(initialState /*: ?ReduxState*/, routerHistory /*: History*/) /*: ReduxStore*/ {
+export default function configureStore(
+  initialState /*: ?ReduxState*/,
+  routerHistory /*: History*/,
+) /*: ReduxStore*/ {
   const router = routerMiddleware(routerHistory);
 
   const actionCreators /*: { [string]: Function }*/ = {
@@ -60,8 +62,8 @@ export default function configureStore(initialState /*: ?ReduxState*/, routerHis
     ...supportActions,
     ...versionActions,
     ...daemonActions,
-    pushRoute: route => push(route),
-    replaceRoute: route => replace(route)
+    pushRoute: (route) => push(route),
+    replaceRoute: (route) => replace(route),
   };
 
   const reducers = {
@@ -70,7 +72,7 @@ export default function configureStore(initialState /*: ?ReduxState*/, routerHis
     settings,
     support,
     version,
-    daemon
+    daemon,
   };
 
   const middlewares = [router];
@@ -83,7 +85,9 @@ export default function configureStore(initialState /*: ?ReduxState*/, routerHis
     return compose;
   })();
 
-  const enhancer /*: StoreEnhancer<ReduxState, ReduxAction, ReduxDispatch>*/ = composeEnhancers(applyMiddleware(...middlewares));
+  const enhancer /*: StoreEnhancer<ReduxState, ReduxAction, ReduxDispatch>*/ = composeEnhancers(
+    applyMiddleware(...middlewares),
+  );
   const rootReducer = combineReducers(reducers);
   const rootReducerWithRouter = connectRouter(routerHistory)(rootReducer);
   if (initialState) {

@@ -8,16 +8,15 @@
 };*/
 /*:: export type DaemonAction = DaemonConnectedAction | DaemonDisconnectedAction;*/
 
-
 function connected() /*: DaemonConnectedAction*/ {
   return {
-    type: 'DAEMON_CONNECTED'
+    type: 'DAEMON_CONNECTED',
   };
 }
 
 function disconnected() /*: DaemonDisconnectedAction*/ {
   return {
-    type: 'DAEMON_DISCONNECTED'
+    type: 'DAEMON_DISCONNECTED',
   };
 }
 

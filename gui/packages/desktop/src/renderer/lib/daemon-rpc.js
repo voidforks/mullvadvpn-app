@@ -1,9 +1,21 @@
 // @flow
 
-import JsonRpcTransport, { RemoteError as JsonRpcRemoteError, TimeOutError as JsonRpcTimeOutError } from './jsonrpc-transport';
+import JsonRpcTransport, {
+  RemoteError as JsonRpcRemoteError,
+  TimeOutError as JsonRpcTimeOutError,
+} from './jsonrpc-transport';
 import { CommunicationError, InvalidAccountError, NoDaemonError } from '../errors';
 
-import { object, maybe, string, number, boolean, enumeration, arrayOf, oneOf } from 'validated/schema';
+import {
+  object,
+  maybe,
+  string,
+  number,
+  boolean,
+  enumeration,
+  arrayOf,
+  oneOf,
+} from 'validated/schema';
 import { validate } from 'validated/object';
 
 /*:: import type { Node as SchemaNode } from 'validated/schema';*/
@@ -25,7 +37,7 @@ const LocationSchema = object({
   city: maybe(string),
   latitude: number,
   longitude: number,
-  mullvad_exit_ip: boolean
+  mullvad_exit_ip: boolean,
 });
 
 /*:: export type SecurityState = 'secured' | 'unsecured';*/
@@ -42,7 +54,6 @@ const LocationSchema = object({
 /*:: type TunnelConstraints<TOpenVpnConstraints> = {
   openvpn: TOpenVpnConstraints,
 };*/
-
 
 // types describing the structure of RelaySettings
 /*:: type RelaySettingsNormal<TTunnelConstraints> = {
@@ -67,7 +78,6 @@ const LocationSchema = object({
   },
 };*/
 
-
 // types describing the partial update of RelaySettings
 /*:: export type RelaySettings =
   | {|
@@ -87,39 +97,50 @@ const LocationSchema = object({
       custom_tunnel_endpoint: RelaySettingsCustom,
     |};*/
 
-
-const constraint = /*:: <T>*/(constraintValue /*: SchemaNode<T>*/) => {
-  return oneOf(string, // any
-  object({
-    only: constraintValue
-  }));
+const constraint = /*:: <T>*/ (constraintValue /*: SchemaNode<T>*/) => {
+  return oneOf(
+    string, // any
+    object({
+      only: constraintValue,
+    }),
+  );
 };
 
-const RelaySettingsSchema = oneOf(object({
-  normal: object({
-    location: constraint(oneOf(object({
-      city: arrayOf(string)
-    }), object({
-      country: string
-    }))),
-    tunnel: constraint(object({
-      openvpn: object({
-        port: constraint(number),
-        protocol: constraint(enumeration('udp', 'tcp'))
-      })
-    }))
-  })
-}), object({
-  custom_tunnel_endpoint: object({
-    host: string,
-    tunnel: object({
-      openvpn: object({
-        port: number,
-        protocol: enumeration('udp', 'tcp')
-      })
-    })
-  })
-}));
+const RelaySettingsSchema = oneOf(
+  object({
+    normal: object({
+      location: constraint(
+        oneOf(
+          object({
+            city: arrayOf(string),
+          }),
+          object({
+            country: string,
+          }),
+        ),
+      ),
+      tunnel: constraint(
+        object({
+          openvpn: object({
+            port: constraint(number),
+            protocol: constraint(enumeration('udp', 'tcp')),
+          }),
+        }),
+      ),
+    }),
+  }),
+  object({
+    custom_tunnel_endpoint: object({
+      host: string,
+      tunnel: object({
+        openvpn: object({
+          port: number,
+          protocol: enumeration('udp', 'tcp'),
+        }),
+      }),
+    }),
+  }),
+);
 
 /*:: export type RelayList = {
   countries: Array<RelayListCountry>,
@@ -137,19 +158,22 @@ const RelaySettingsSchema = oneOf(object({
   has_active_relays: boolean,
 };*/
 
-
 const RelayListSchema = object({
-  countries: arrayOf(object({
-    name: string,
-    code: string,
-    cities: arrayOf(object({
+  countries: arrayOf(
+    object({
       name: string,
       code: string,
-      latitude: number,
-      longitude: number,
-      has_active_relays: boolean
-    }))
-  }))
+      cities: arrayOf(
+        object({
+          name: string,
+          code: string,
+          latitude: number,
+          longitude: number,
+          has_active_relays: boolean,
+        }),
+      ),
+    }),
+  ),
 });
 
 /*:: export type TunnelOptions = {
@@ -158,22 +182,21 @@ const RelayListSchema = object({
   },
 };*/
 
-
 const TunnelOptionsSchema = object({
   openvpn: object({
     enable_ipv6: boolean,
-    mssfix: maybe(number)
-  })
+    mssfix: maybe(number),
+  }),
 });
 
 const AccountDataSchema = object({
-  expiry: string
+  expiry: string,
 });
 
 const allSecurityStates /*: Array<SecurityState>*/ = ['secured', 'unsecured'];
 const BackendStateSchema = object({
   state: enumeration(...allSecurityStates),
-  target_state: enumeration(...allSecurityStates)
+  target_state: enumeration(...allSecurityStates),
 });
 
 /*:: export type AppVersionInfo = {
@@ -184,13 +207,12 @@ const BackendStateSchema = object({
   },
 };*/
 
-
 const AppVersionInfoSchema = object({
   current_is_supported: boolean,
   latest: object({
     latest_stable: string,
-    latest: string
-  })
+    latest: string,
+  }),
 });
 
 /*:: export interface DaemonRpcProtocol {
@@ -222,10 +244,8 @@ const AppVersionInfoSchema = object({
   getVersionInfo(): Promise<AppVersionInfo>;
 }*/
 
-
 export class ResponseParseError extends Error {
   /*:: _validationError: ?Error;*/
-
 
   constructor(message /*: string*/, validationError /*: ?Error*/) {
     super(message);
@@ -241,8 +261,7 @@ export class ResponseParseError extends Error {
   unsubscribe: () => void,
 };*/
 
-
-export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
+export class DaemonRpc /*:: implements DaemonRpcProtocol*/ {
   _transport = new JsonRpcTransport();
 
   async authenticate(sharedSecret /*: string*/) /*: Promise<void>*/ {
@@ -262,7 +281,7 @@ export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
     return {
       unsubscribe: () => {
         this._transport.off('open', handler);
-      }
+      },
     };
   }
 
@@ -271,7 +290,7 @@ export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
     return {
       unsubscribe: () => {
         this._transport.off('close', handler);
-      }
+      },
     };
   }
 
@@ -344,7 +363,7 @@ export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
           'any' | object
          These two are incompatible so we simply enforce the type for now.
       */
-      return ((validatedObject /*: any*/) /*: RelaySettings*/);
+      return validatedObject /*: any*/ /*: RelaySettings*/;
     } catch (e) {
       throw new ResponseParseError('Invalid response from get_relay_settings', e);
     }
@@ -374,8 +393,8 @@ export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
 
       return {
         openvpn: {
-          enableIpv6: validatedObject.openvpn.enable_ipv6
-        }
+          enableIpv6: validatedObject.openvpn.enable_ipv6,
+        },
       };
     } catch (error) {
       throw new ResponseParseError('Invalid response from get_tunnel_options', error);
@@ -424,8 +443,10 @@ export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
     }
   }
 
-  subscribeStateListener(listener /*: (state: ?BackendState, error: ?Error) => void*/) /*: Promise<void>*/ {
-    return this._transport.subscribe('new_state', payload => {
+  subscribeStateListener(
+    listener /*: (state: ?BackendState, error: ?Error) => void*/,
+  ) /*: Promise<void>*/ {
+    return this._transport.subscribe('new_state', (payload) => {
       try {
         const newState = validate(BackendStateSchema, payload);
         listener(newState, null);
@@ -465,8 +486,8 @@ export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
         currentIsSupported: versionInfo.current_is_supported,
         latest: {
           latestStable: versionInfo.latest.latest_stable,
-          latest: versionInfo.latest.latest
-        }
+          latest: versionInfo.latest.latest,
+        },
       };
     } catch (error) {
       throw new ResponseParseError('Invalid response from get_version_info', null);

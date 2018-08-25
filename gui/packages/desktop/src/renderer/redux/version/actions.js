@@ -12,11 +12,10 @@
 };*/
 /*:: export type VersionAction = UpdateLatestAction | UpdateVersionAction;*/
 
-
 function updateLatest(latestInfo /*: AppVersionInfo*/) /*: UpdateLatestAction*/ {
   return {
     type: 'UPDATE_LATEST',
-    latestInfo
+    latestInfo,
   };
 }
 
@@ -24,7 +23,7 @@ function updateVersion(version /*: string*/, consistent /*: boolean*/) /*: Updat
   return {
     type: 'UPDATE_VERSION',
     version,
-    consistent
+    consistent,
   };
 }
 

@@ -13,10 +13,10 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: -150
+    marginTop: -150,
   }),
   logo: Styles.createViewStyle({
-    marginBottom: 4
+    marginBottom: 4,
   }),
   title: Styles.createTextStyle({
     fontFamily: 'DINPro',
@@ -25,24 +25,24 @@ const styles = {
     lineHeight: 30,
     letterSpacing: -0.5,
     color: colors.white60,
-    marginBottom: 4
+    marginBottom: 4,
   }),
   subtitle: Styles.createTextStyle({
     fontFamily: 'Open Sans',
     fontSize: 14,
     lineHeight: 20,
-    color: colors.white40
-  })
+    color: colors.white40,
+  }),
 };
 
 /*:: type Props = {
   openSettings: () => void,
 };*/
 
-
 export default class Launch extends Component /*:: <Props>*/ {
   render() {
-    return <Layout>
+    return (
+      <Layout>
         <Header>
           <SettingsBarButton onPress={this.props.openSettings} />
         </Header>
@@ -53,6 +53,7 @@ export default class Launch extends Component /*:: <Props>*/ {
             <Text style={styles.subtitle}>{'Connecting to daemon...'}</Text>
           </View>
         </Container>
-      </Layout>;
+      </Layout>
+    );
   }
 }

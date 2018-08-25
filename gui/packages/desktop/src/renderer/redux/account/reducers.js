@@ -11,16 +11,18 @@
   error: ?Error,
 };*/
 
-
 const initialState /*: AccountReduxState*/ = {
   accountToken: null,
   accountHistory: [],
   expiry: null,
   status: 'none',
-  error: null
+  error: null,
 };
 
-export default function (state /*: AccountReduxState*/ = initialState, action /*: ReduxAction*/) /*: AccountReduxState*/ {
+export default function(
+  state /*: AccountReduxState*/ = initialState,
+  action /*: ReduxAction*/,
+) /*: AccountReduxState*/ {
   switch (action.type) {
     case 'START_LOGIN':
       return {
@@ -28,16 +30,16 @@ export default function (state /*: AccountReduxState*/ = initialState, action /*
         ...{
           status: 'logging in',
           accountToken: action.accountToken,
-          error: null
-        }
+          error: null,
+        },
       };
     case 'LOGIN_SUCCESSFUL':
       return {
         ...state,
         ...{
           status: 'ok',
-          error: null
-        }
+          error: null,
+        },
       };
     case 'LOGIN_FAILED':
       return {
@@ -45,8 +47,8 @@ export default function (state /*: AccountReduxState*/ = initialState, action /*
         ...{
           status: 'failed',
           accountToken: null,
-          error: action.error
-        }
+          error: action.error,
+        },
       };
     case 'LOGGED_OUT':
       return {
@@ -55,37 +57,37 @@ export default function (state /*: AccountReduxState*/ = initialState, action /*
           status: 'none',
           accountToken: null,
           expiry: null,
-          error: null
-        }
+          error: null,
+        },
       };
     case 'RESET_LOGIN_ERROR':
       return {
         ...state,
         ...{
           status: 'none',
-          error: null
-        }
+          error: null,
+        },
       };
     case 'UPDATE_ACCOUNT_TOKEN':
       return {
         ...state,
         ...{
-          accountToken: action.token
-        }
+          accountToken: action.token,
+        },
       };
     case 'UPDATE_ACCOUNT_HISTORY':
       return {
         ...state,
         ...{
-          accountHistory: action.accountHistory
-        }
+          accountHistory: action.accountHistory,
+        },
       };
     case 'UPDATE_ACCOUNT_EXPIRY':
       return {
         ...state,
         ...{
-          expiry: action.expiry
-        }
+          expiry: action.expiry,
+        },
       };
   }
 

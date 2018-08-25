@@ -13,17 +13,16 @@
 };*/
 /*:: export type SupportAction = KeepReportFormAction | ClearReportFormAction;*/
 
-
 function saveReportForm(form /*: SupportReportForm*/) /*: KeepReportFormAction*/ {
   return {
     type: 'SAVE_REPORT_FORM',
-    form
+    form,
   };
 }
 
 function clearReportForm() /*: ClearReportFormAction*/ {
   return {
-    type: 'CLEAR_REPORT_FORM'
+    type: 'CLEAR_REPORT_FORM',
   };
 }
 

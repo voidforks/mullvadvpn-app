@@ -7,7 +7,6 @@ import * as React from 'react';
   position: boolean,
 };*/
 
-
 const AUTOHIDE_TIMEOUT = 1000;
 
 /*:: type Props = {
@@ -21,22 +20,20 @@ const AUTOHIDE_TIMEOUT = 1000;
 };*/
 /*:: type ScrollPosition = 'top' | 'bottom' | 'middle';*/
 
-
 export default class CustomScrollbars extends React.Component /*:: <Props, State>*/ {
   static defaultProps = {
     autoHide: true,
-    thumbInset: { x: 2, y: 2 }
+    thumbInset: { x: 2, y: 2 },
   };
 
   state = {
     canScroll: false,
-    showScrollIndicators: true
+    showScrollIndicators: true,
   };
 
   /*:: _scrollableElement: ?HTMLElement;*/
   /*:: _thumbElement: ?HTMLElement;*/
   /*:: _autoHideTimer: ?TimeoutID;*/
-
 
   scrollTo(x /*: number*/, y /*: number*/) {
     const scrollable = this._scrollableElement;
@@ -51,7 +48,9 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
     if (scrollable) {
       // throw if child is not a descendant of scroll view
       if (!scrollable.contains(child)) {
-        throw new Error('Cannot scroll to an element which is not a descendant of CustomScrollbars.');
+        throw new Error(
+          'Cannot scroll to an element which is not a descendant of CustomScrollbars.',
+        );
       }
 
       const scrollTop = this._computeScrollTop(scrollable, child, scrollPosition);
@@ -62,7 +61,7 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
   componentDidMount() {
     this._updateScrollbarsHelper({
       position: true,
-      size: true
+      size: true,
     });
 
     // show scroll indicators briefly when mounted
@@ -78,7 +77,7 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
   componentDidUpdate() {
     this._updateScrollbarsHelper({
       position: true,
-      size: true
+      size: true,
     });
   }
 
@@ -86,19 +85,29 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
     const { autoHide: _autoHide, thumbInset: _thumbInset, children, ...otherProps } = this.props;
     const showScrollbars = this.state.canScroll && this.state.showScrollIndicators;
     const thumbAnimationClass = showScrollbars ? ' custom-scrollbars__thumb--visible' : '';
-    return <div {...otherProps} className="custom-scrollbars">
-        <div className={`custom-scrollbars__thumb ${thumbAnimationClass}`} style={{ position: 'absolute', top: 0, right: 0 }} ref={this._onThumbRef} />
-        <div className="custom-scrollbars__scrollable" style={{ overflow: 'auto' }} onScroll={this._onScroll} ref={this._onScrollableRef}>
+    return (
+      <div {...otherProps} className="custom-scrollbars">
+        <div
+          className={`custom-scrollbars__thumb ${thumbAnimationClass}`}
+          style={{ position: 'absolute', top: 0, right: 0 }}
+          ref={this._onThumbRef}
+        />
+        <div
+          className="custom-scrollbars__scrollable"
+          style={{ overflow: 'auto' }}
+          onScroll={this._onScroll}
+          ref={this._onScrollableRef}>
           {children}
         </div>
-      </div>;
+      </div>
+    );
   }
 
-  _onScrollableRef = ref => {
+  _onScrollableRef = (ref) => {
     this._scrollableElement = ref;
   };
 
-  _onThumbRef = ref => {
+  _onThumbRef = (ref) => {
     this._thumbElement = ref;
   };
 
@@ -117,13 +126,13 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
 
     this._autoHideTimer = setTimeout(() => {
       this.setState({
-        showScrollIndicators: false
+        showScrollIndicators: false,
       });
     }, AUTOHIDE_TIMEOUT);
 
     if (!this.state.showScrollIndicators) {
       this.setState({
-        showScrollIndicators: true
+        showScrollIndicators: true,
       });
     }
   }
@@ -145,13 +154,17 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
 
       // Flow bug in offsetParent definition:
       // https://github.com/facebook/flow/issues/4407
-      node = ((node.offsetParent /*: any*/) /*: HTMLElement*/);
+      node = node.offsetParent /*: any*/ /*: HTMLElement*/;
     }
 
     return offsetTop;
   }
 
-  _computeScrollTop(scrollable /*: HTMLElement*/, child /*: HTMLElement*/, scrollPosition /*: ScrollPosition*/) {
+  _computeScrollTop(
+    scrollable /*: HTMLElement*/,
+    child /*: HTMLElement*/,
+    scrollPosition /*: ScrollPosition*/,
+  ) {
     const offsetTop = this._computeOffsetTop(scrollable, child);
 
     switch (scrollPosition) {
@@ -165,7 +178,7 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
         return offsetTop - (scrollable.offsetHeight - child.clientHeight) * 0.5;
 
       default:
-        throw new Error(`Unknown enum type for ScrollPosition: ${(scrollPosition /*: empty*/)}`);
+        throw new Error(`Unknown enum type for ScrollPosition: ${scrollPosition /*: empty*/}`);
     }
   }
 
@@ -197,7 +210,7 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
 
     return {
       x: -this.props.thumbInset.x,
-      y: thumbPosition
+      y: thumbPosition,
     };
   }
 
@@ -205,7 +218,7 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
     const scrollHeight = scrollable.scrollHeight;
     const visibleHeight = scrollable.offsetHeight;
 
-    const thumbHeight = visibleHeight / scrollHeight * visibleHeight;
+    const thumbHeight = (visibleHeight / scrollHeight) * visibleHeight;
 
     // ensure that the scroll thumb doesn't shrink to nano size
     return Math.max(thumbHeight, 8);
@@ -219,7 +232,11 @@ export default class CustomScrollbars extends React.Component /*:: <Props, State
     }
   }
 
-  _updateScrollbars(scrollable /*: HTMLElement*/, thumb /*: HTMLElement*/, context /*: $Shape<ScrollbarUpdateContext>*/) {
+  _updateScrollbars(
+    scrollable /*: HTMLElement*/,
+    thumb /*: HTMLElement*/,
+    context /*: $Shape<ScrollbarUpdateContext>*/,
+  ) {
     if (context.size) {
       const thumbHeight = this._computeThumbHeight(scrollable);
       thumb.style.setProperty('height', thumbHeight + 'px');

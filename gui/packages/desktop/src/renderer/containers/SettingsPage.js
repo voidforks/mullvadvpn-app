@@ -10,13 +10,12 @@ import { links } from '../../config';
 /*:: import type { ReduxState, ReduxDispatch } from '../redux/store';*/
 /*:: import type { SharedRouteProps } from '../routes';*/
 
-
 const mapStateToProps = (state /*: ReduxState*/) => ({
   loginState: state.account.status,
   accountExpiry: state.account.expiry,
   appVersion: state.version.current,
   consistentVersion: state.version.consistent,
-  upToDateVersion: state.version.upToDate
+  upToDateVersion: state.version.upToDate,
 });
 const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteProps*/) => {
   const history = bindActionCreators({ push, goBack }, dispatch);
@@ -27,9 +26,12 @@ const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteP
     onViewSupport: () => history.push('/settings/support'),
     onViewPreferences: () => history.push('/settings/preferences'),
     onViewAdvancedSettings: () => history.push('/settings/advanced'),
-    onExternalLink: type => shell.openExternal(links[type]),
-    updateAccountExpiry: () => props.app.updateAccountExpiry()
+    onExternalLink: (type) => shell.openExternal(links[type]),
+    updateAccountExpiry: () => props.app.updateAccountExpiry(),
   };
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Settings);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(Settings);

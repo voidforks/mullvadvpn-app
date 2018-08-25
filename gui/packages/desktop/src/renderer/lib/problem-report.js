@@ -22,7 +22,11 @@ const collectProblemReport = (toRedact /*: Array<string>*/) /*: Promise<string>*
   });
 };
 
-const sendProblemReport = (email /*: string*/, message /*: string*/, savedReport /*: string*/) /*: Promise<void>*/ => {
+const sendProblemReport = (
+  email /*: string*/,
+  message /*: string*/,
+  savedReport /*: string*/,
+) /*: Promise<void>*/ => {
   return new Promise((resolve, reject) => {
     const requestId = uuid.v4();
     const responseListener = (_event, responseId, result) => {

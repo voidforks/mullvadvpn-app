@@ -13,7 +13,6 @@
   city: ?string,
 };*/
 
-
 const initialState /*: ConnectionReduxState*/ = {
   status: 'disconnected',
   isOnline: true,
@@ -21,10 +20,13 @@ const initialState /*: ConnectionReduxState*/ = {
   latitude: null,
   longitude: null,
   country: null,
-  city: null
+  city: null,
 };
 
-export default function (state /*: ConnectionReduxState*/ = initialState, action /*: ReduxAction*/) /*: ConnectionReduxState*/ {
+export default function(
+  state /*: ConnectionReduxState*/ = initialState,
+  action /*: ReduxAction*/,
+) /*: ConnectionReduxState*/ {
   switch (action.type) {
     case 'NEW_LOCATION':
       return { ...state, ...action.newLocation };

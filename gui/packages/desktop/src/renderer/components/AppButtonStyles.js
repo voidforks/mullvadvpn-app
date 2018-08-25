@@ -5,39 +5,39 @@ import { colors } from '../../config';
 
 export default {
   red: Styles.createViewStyle({
-    backgroundColor: colors.red
+    backgroundColor: colors.red,
   }),
   redHover: Styles.createViewStyle({
-    backgroundColor: colors.red95
+    backgroundColor: colors.red95,
   }),
   green: Styles.createViewStyle({
-    backgroundColor: colors.green
+    backgroundColor: colors.green,
   }),
   greenHover: Styles.createViewStyle({
-    backgroundColor: colors.green90
+    backgroundColor: colors.green90,
   }),
   blue: Styles.createViewStyle({
-    backgroundColor: colors.blue80
+    backgroundColor: colors.blue80,
   }),
   blueHover: Styles.createViewStyle({
-    backgroundColor: colors.blue60
+    backgroundColor: colors.blue60,
   }),
   white80: Styles.createViewStyle({
-    color: colors.white80
+    color: colors.white80,
   }),
   white: Styles.createViewStyle({
-    color: colors.white
+    color: colors.white,
   }),
   icon: Styles.createViewStyle({
     position: 'absolute',
     alignSelf: 'flex-end',
     right: 8,
-    marginLeft: 8
+    marginLeft: 8,
   }),
   iconTransparent: Styles.createViewStyle({
     position: 'absolute',
     alignSelf: 'flex-end',
-    right: 42
+    right: 42,
   }),
   common: Styles.createViewStyle({
     cursor: 'default',
@@ -49,7 +49,7 @@ export default {
     flex: 1,
     flexDirection: 'column',
     alignContent: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   }),
 
   label: Styles.createTextStyle({
@@ -58,6 +58,6 @@ export default {
     fontSize: 20,
     fontWeight: '900',
     lineHeight: 26,
-    flex: 1
-  })
+    flex: 1,
+  }),
 };
