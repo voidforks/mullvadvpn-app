@@ -16,57 +16,52 @@ import versionActions from './version/actions';
 import daemon from './daemon/reducers';
 import daemonActions from './daemon/actions';
 
-import type { Store, StoreEnhancer } from 'redux';
-import type { History } from 'history';
-import type { AccountReduxState } from './account/reducers';
-import type { ConnectionReduxState } from './connection/reducers';
-import type { SettingsReduxState } from './settings/reducers';
-import type { SupportReduxState } from './support/reducers';
-import type { VersionReduxState } from './version/reducers';
-import type { DaemonReduxState } from './daemon/reducers';
-
-import type { AccountAction } from './account/actions';
-import type { ConnectionAction } from './connection/actions';
-import type { SettingsAction } from './settings/actions';
-import type { SupportAction } from './support/actions';
-import type { VersionAction } from './version/actions';
-import type { DaemonAction } from './daemon/actions';
-
-export type ReduxState = {
+/*:: import type { Store, StoreEnhancer } from 'redux';*/
+/*:: import type { History } from 'history';*/
+/*:: import type { AccountReduxState } from './account/reducers';*/
+/*:: import type { ConnectionReduxState } from './connection/reducers';*/
+/*:: import type { SettingsReduxState } from './settings/reducers';*/
+/*:: import type { SupportReduxState } from './support/reducers';*/
+/*:: import type { VersionReduxState } from './version/reducers';*/
+/*:: import type { DaemonReduxState } from './daemon/reducers';*/
+/*:: import type { AccountAction } from './account/actions';*/
+/*:: import type { ConnectionAction } from './connection/actions';*/
+/*:: import type { SettingsAction } from './settings/actions';*/
+/*:: import type { SupportAction } from './support/actions';*/
+/*:: import type { VersionAction } from './version/actions';*/
+/*:: import type { DaemonAction } from './daemon/actions';*/
+/*:: export type ReduxState = {
   account: AccountReduxState,
   connection: ConnectionReduxState,
   settings: SettingsReduxState,
   support: SupportReduxState,
   version: VersionReduxState,
   daemon: DaemonReduxState,
-};
-
-export type ReduxAction =
+};*/
+/*:: export type ReduxAction =
   | AccountAction
   | ConnectionAction
   | SettingsAction
   | SupportAction
   | VersionAction
-  | DaemonAction;
-export type ReduxStore = Store<ReduxState, ReduxAction, ReduxDispatch>;
-export type ReduxGetState = () => ReduxState;
-export type ReduxDispatch = (action: ReduxAction) => any;
+  | DaemonAction;*/
+/*:: export type ReduxStore = Store<ReduxState, ReduxAction, ReduxDispatch>;*/
+/*:: export type ReduxGetState = () => ReduxState;*/
+/*:: export type ReduxDispatch = (action: ReduxAction) => any;*/
 
-export default function configureStore(
-  initialState: ?ReduxState,
-  routerHistory: History,
-): ReduxStore {
+
+export default function configureStore(initialState /*: ?ReduxState*/, routerHistory /*: History*/) /*: ReduxStore*/ {
   const router = routerMiddleware(routerHistory);
 
-  const actionCreators: { [string]: Function } = {
+  const actionCreators /*: { [string]: Function }*/ = {
     ...accountActions,
     ...connectionActions,
     ...settingsActions,
     ...supportActions,
     ...versionActions,
     ...daemonActions,
-    pushRoute: (route) => push(route),
-    replaceRoute: (route) => replace(route),
+    pushRoute: route => push(route),
+    replaceRoute: route => replace(route)
   };
 
   const reducers = {
@@ -75,7 +70,7 @@ export default function configureStore(
     settings,
     support,
     version,
-    daemon,
+    daemon
   };
 
   const middlewares = [router];
@@ -88,9 +83,7 @@ export default function configureStore(
     return compose;
   })();
 
-  const enhancer: StoreEnhancer<ReduxState, ReduxAction, ReduxDispatch> = composeEnhancers(
-    applyMiddleware(...middlewares),
-  );
+  const enhancer /*: StoreEnhancer<ReduxState, ReduxAction, ReduxDispatch>*/ = composeEnhancers(applyMiddleware(...middlewares));
   const rootReducer = combineReducers(reducers);
   const rootReducerWithRouter = connectRouter(routerHistory)(rootReducer);
   if (initialState) {

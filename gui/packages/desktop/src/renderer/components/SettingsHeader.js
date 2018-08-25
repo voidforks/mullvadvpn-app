@@ -13,18 +13,18 @@ const styles = {
       paddingTop: 16,
       paddingRight: 24,
       paddingLeft: 24,
-      paddingBottom: 24,
+      paddingBottom: 24
     }),
     linux: Styles.createViewStyle({
-      WebkitAppRegion: 'drag',
-    }),
+      WebkitAppRegion: 'drag'
+    })
   },
   title: Styles.createTextStyle({
     fontFamily: 'DINPro',
     fontSize: 32,
     fontWeight: '900',
     lineHeight: 40,
-    color: colors.white,
+    color: colors.white
   }),
   subtitle: Styles.createTextStyle({
     marginTop: 4,
@@ -34,17 +34,15 @@ const styles = {
     overflow: 'visible',
     color: colors.white80,
     lineHeight: 20,
-    letterSpacing: -0.2,
-  }),
+    letterSpacing: -0.2
+  })
 };
 
 export default class SettingsHeader extends Component {
   render() {
-    return (
-      <View style={[styles.header.default, styles.header[process.platform], this.props.style]}>
+    return <View style={[styles.header.default, styles.header[process.platform], this.props.style]}>
         {this.props.children}
-      </View>
-    );
+      </View>;
   }
 }
 

@@ -1,64 +1,51 @@
 // @flow
 
-import JsonRpcTransport, {
-  RemoteError as JsonRpcRemoteError,
-  TimeOutError as JsonRpcTimeOutError,
-} from './jsonrpc-transport';
+import JsonRpcTransport, { RemoteError as JsonRpcRemoteError, TimeOutError as JsonRpcTimeOutError } from './jsonrpc-transport';
 import { CommunicationError, InvalidAccountError, NoDaemonError } from '../errors';
 
-import {
-  object,
-  maybe,
-  string,
-  number,
-  boolean,
-  enumeration,
-  arrayOf,
-  oneOf,
-} from 'validated/schema';
+import { object, maybe, string, number, boolean, enumeration, arrayOf, oneOf } from 'validated/schema';
 import { validate } from 'validated/object';
 
-import type { Node as SchemaNode } from 'validated/schema';
-
-export type AccountData = { expiry: string };
-export type AccountToken = string;
-export type Ip = string;
-export type Location = {
+/*:: import type { Node as SchemaNode } from 'validated/schema';*/
+/*:: export type AccountData = { expiry: string };*/
+/*:: export type AccountToken = string;*/
+/*:: export type Ip = string;*/
+/*:: export type Location = {
   ip: Ip,
   country: string,
   city: ?string,
   latitude: number,
   longitude: number,
   mullvad_exit_ip: boolean,
-};
+};*/
+
 const LocationSchema = object({
   ip: string,
   country: string,
   city: maybe(string),
   latitude: number,
   longitude: number,
-  mullvad_exit_ip: boolean,
+  mullvad_exit_ip: boolean
 });
 
-export type SecurityState = 'secured' | 'unsecured';
-export type BackendState = {
+/*:: export type SecurityState = 'secured' | 'unsecured';*/
+/*:: export type BackendState = {
   state: SecurityState,
   target_state: SecurityState,
-};
-
-export type RelayProtocol = 'tcp' | 'udp';
-export type RelayLocation = {| city: [string, string] |} | {| country: string |};
-
-type OpenVpnConstraints = {
+};*/
+/*:: export type RelayProtocol = 'tcp' | 'udp';*/
+/*:: export type RelayLocation = {| city: [string, string] |} | {| country: string |};*/
+/*:: type OpenVpnConstraints = {
   port: 'any' | { only: number },
   protocol: 'any' | { only: RelayProtocol },
-};
-
-type TunnelConstraints<TOpenVpnConstraints> = {
+};*/
+/*:: type TunnelConstraints<TOpenVpnConstraints> = {
   openvpn: TOpenVpnConstraints,
-};
+};*/
 
-type RelaySettingsNormal<TTunnelConstraints> = {
+
+// types describing the structure of RelaySettings
+/*:: type RelaySettingsNormal<TTunnelConstraints> = {
   location:
     | 'any'
     | {
@@ -69,10 +56,8 @@ type RelaySettingsNormal<TTunnelConstraints> = {
     | {
         only: TTunnelConstraints,
       },
-};
-
-// types describing the structure of RelaySettings
-export type RelaySettingsCustom = {
+};*/
+/*:: export type RelaySettingsCustom = {
   host: string,
   tunnel: {
     openvpn: {
@@ -80,148 +65,135 @@ export type RelaySettingsCustom = {
       protocol: RelayProtocol,
     },
   },
-};
-export type RelaySettings =
+};*/
+
+
+// types describing the partial update of RelaySettings
+/*:: export type RelaySettings =
   | {|
       normal: RelaySettingsNormal<TunnelConstraints<OpenVpnConstraints>>,
     |}
   | {|
       custom_tunnel_endpoint: RelaySettingsCustom,
-    |};
-
-// types describing the partial update of RelaySettings
-export type RelaySettingsNormalUpdate = $Shape<
+    |};*/
+/*:: export type RelaySettingsNormalUpdate = $Shape<
   RelaySettingsNormal<TunnelConstraints<$Shape<OpenVpnConstraints>>>,
->;
-export type RelaySettingsUpdate =
+>;*/
+/*:: export type RelaySettingsUpdate =
   | {|
       normal: RelaySettingsNormalUpdate,
     |}
   | {|
       custom_tunnel_endpoint: RelaySettingsCustom,
-    |};
+    |};*/
 
-const constraint = <T>(constraintValue: SchemaNode<T>) => {
-  return oneOf(
-    string, // any
-    object({
-      only: constraintValue,
-    }),
-  );
+
+const constraint = /*:: <T>*/(constraintValue /*: SchemaNode<T>*/) => {
+  return oneOf(string, // any
+  object({
+    only: constraintValue
+  }));
 };
 
-const RelaySettingsSchema = oneOf(
-  object({
-    normal: object({
-      location: constraint(
-        oneOf(
-          object({
-            city: arrayOf(string),
-          }),
-          object({
-            country: string,
-          }),
-        ),
-      ),
-      tunnel: constraint(
-        object({
-          openvpn: object({
-            port: constraint(number),
-            protocol: constraint(enumeration('udp', 'tcp')),
-          }),
-        }),
-      ),
-    }),
-  }),
-  object({
-    custom_tunnel_endpoint: object({
-      host: string,
-      tunnel: object({
-        openvpn: object({
-          port: number,
-          protocol: enumeration('udp', 'tcp'),
-        }),
-      }),
-    }),
-  }),
-);
+const RelaySettingsSchema = oneOf(object({
+  normal: object({
+    location: constraint(oneOf(object({
+      city: arrayOf(string)
+    }), object({
+      country: string
+    }))),
+    tunnel: constraint(object({
+      openvpn: object({
+        port: constraint(number),
+        protocol: constraint(enumeration('udp', 'tcp'))
+      })
+    }))
+  })
+}), object({
+  custom_tunnel_endpoint: object({
+    host: string,
+    tunnel: object({
+      openvpn: object({
+        port: number,
+        protocol: enumeration('udp', 'tcp')
+      })
+    })
+  })
+}));
 
-export type RelayList = {
+/*:: export type RelayList = {
   countries: Array<RelayListCountry>,
-};
-
-export type RelayListCountry = {
+};*/
+/*:: export type RelayListCountry = {
   name: string,
   code: string,
   cities: Array<RelayListCity>,
-};
-
-export type RelayListCity = {
+};*/
+/*:: export type RelayListCity = {
   name: string,
   code: string,
   latitude: number,
   longitude: number,
   has_active_relays: boolean,
-};
+};*/
+
 
 const RelayListSchema = object({
-  countries: arrayOf(
-    object({
+  countries: arrayOf(object({
+    name: string,
+    code: string,
+    cities: arrayOf(object({
       name: string,
       code: string,
-      cities: arrayOf(
-        object({
-          name: string,
-          code: string,
-          latitude: number,
-          longitude: number,
-          has_active_relays: boolean,
-        }),
-      ),
-    }),
-  ),
+      latitude: number,
+      longitude: number,
+      has_active_relays: boolean
+    }))
+  }))
 });
 
-export type TunnelOptions = {
+/*:: export type TunnelOptions = {
   openvpn: {
     enableIpv6: boolean,
   },
-};
+};*/
+
 
 const TunnelOptionsSchema = object({
   openvpn: object({
     enable_ipv6: boolean,
-    mssfix: maybe(number),
-  }),
+    mssfix: maybe(number)
+  })
 });
 
 const AccountDataSchema = object({
-  expiry: string,
+  expiry: string
 });
 
-const allSecurityStates: Array<SecurityState> = ['secured', 'unsecured'];
+const allSecurityStates /*: Array<SecurityState>*/ = ['secured', 'unsecured'];
 const BackendStateSchema = object({
   state: enumeration(...allSecurityStates),
-  target_state: enumeration(...allSecurityStates),
+  target_state: enumeration(...allSecurityStates)
 });
 
-export type AppVersionInfo = {
+/*:: export type AppVersionInfo = {
   currentIsSupported: boolean,
   latest: {
     latestStable: string,
     latest: string,
   },
-};
+};*/
+
 
 const AppVersionInfoSchema = object({
   current_is_supported: boolean,
   latest: object({
     latest_stable: string,
-    latest: string,
-  }),
+    latest: string
+  })
 });
 
-export interface DaemonRpcProtocol {
+/*:: export interface DaemonRpcProtocol {
   connect(string): void;
   disconnect(): void;
   getAccountData(AccountToken): Promise<AccountData>;
@@ -248,33 +220,36 @@ export interface DaemonRpcProtocol {
   removeAccountFromHistory(accountToken: AccountToken): Promise<void>;
   getCurrentVersion(): Promise<string>;
   getVersionInfo(): Promise<AppVersionInfo>;
-}
+}*/
+
 
 export class ResponseParseError extends Error {
-  _validationError: ?Error;
+  /*:: _validationError: ?Error;*/
 
-  constructor(message: string, validationError: ?Error) {
+
+  constructor(message /*: string*/, validationError /*: ?Error*/) {
     super(message);
     this._validationError = validationError;
   }
 
-  get validationError(): ?Error {
+  get validationError() /*: ?Error*/ {
     return this._validationError;
   }
 }
 
-export type ConnectionObserver = {
+/*:: export type ConnectionObserver = {
   unsubscribe: () => void,
-};
+};*/
 
-export class DaemonRpc implements DaemonRpcProtocol {
+
+export class DaemonRpc implements /*:: DaemonRpcProtocol*/ {
   _transport = new JsonRpcTransport();
 
-  async authenticate(sharedSecret: string): Promise<void> {
+  async authenticate(sharedSecret /*: string*/) /*: Promise<void>*/ {
     await this._transport.send('auth', sharedSecret);
   }
 
-  connect(connectionString: string) {
+  connect(connectionString /*: string*/) {
     this._transport.connect(connectionString);
   }
 
@@ -282,25 +257,25 @@ export class DaemonRpc implements DaemonRpcProtocol {
     this._transport.disconnect();
   }
 
-  addOpenConnectionObserver(handler: () => void): ConnectionObserver {
+  addOpenConnectionObserver(handler /*: () => void*/) /*: ConnectionObserver*/ {
     this._transport.on('open', handler);
     return {
       unsubscribe: () => {
         this._transport.off('open', handler);
-      },
+      }
     };
   }
 
-  addCloseConnectionObserver(handler: (error: ?Error) => void): ConnectionObserver {
+  addCloseConnectionObserver(handler /*: (error: ?Error) => void*/) /*: ConnectionObserver*/ {
     this._transport.on('close', handler);
     return {
       unsubscribe: () => {
         this._transport.off('close', handler);
-      },
+      }
     };
   }
 
-  async getAccountData(accountToken: AccountToken): Promise<AccountData> {
+  async getAccountData(accountToken /*: AccountToken*/) /*: Promise<AccountData>*/ {
     // send the IPC with 30s timeout since the backend will wait
     // for a HTTP request before replying
     let response;
@@ -309,9 +284,11 @@ export class DaemonRpc implements DaemonRpcProtocol {
     } catch (error) {
       if (error instanceof JsonRpcRemoteError) {
         switch (error.code) {
-          case -200: // Account doesn't exist
+          case -200:
+            // Account doesn't exist
             throw new InvalidAccountError();
-          case -32603: // Internal error
+          case -32603:
+            // Internal error
             throw new CommunicationError();
         }
       } else if (error instanceof JsonRpcTimeOutError) {
@@ -328,7 +305,7 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async getRelayLocations(): Promise<RelayList> {
+  async getRelayLocations() /*: Promise<RelayList>*/ {
     const response = await this._transport.send('get_relay_locations');
     try {
       return validate(RelayListSchema, response);
@@ -337,7 +314,7 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async getAccount(): Promise<?AccountToken> {
+  async getAccount() /*: Promise<?AccountToken>*/ {
     const response = await this._transport.send('get_account');
     if (response === null || typeof response === 'string') {
       return response;
@@ -346,41 +323,38 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async setAccount(accountToken: ?AccountToken): Promise<void> {
+  async setAccount(accountToken /*: ?AccountToken*/) /*: Promise<void>*/ {
     await this._transport.send('set_account', accountToken);
   }
 
-  async updateRelaySettings(relaySettings: RelaySettingsUpdate): Promise<void> {
+  async updateRelaySettings(relaySettings /*: RelaySettingsUpdate*/) /*: Promise<void>*/ {
     await this._transport.send('update_relay_settings', [relaySettings]);
   }
 
-  async getRelaySettings(): Promise<RelaySettings> {
+  async getRelaySettings() /*: Promise<RelaySettings>*/ {
     const response = await this._transport.send('get_relay_settings');
     try {
       const validatedObject = validate(RelaySettingsSchema, response);
 
       /* $FlowFixMe:
         There is no way to express constraints with string literals, i.e:
-
-        RelaySettingsSchema constraint:
+         RelaySettingsSchema constraint:
           oneOf(string, object)
-
-        RelaySettings constraint:
+         RelaySettings constraint:
           'any' | object
-
-        These two are incompatible so we simply enforce the type for now.
+         These two are incompatible so we simply enforce the type for now.
       */
-      return ((validatedObject: any): RelaySettings);
+      return ((validatedObject /*: any*/) /*: RelaySettings*/);
     } catch (e) {
       throw new ResponseParseError('Invalid response from get_relay_settings', e);
     }
   }
 
-  async setAllowLan(allowLan: boolean): Promise<void> {
+  async setAllowLan(allowLan /*: boolean*/) /*: Promise<void>*/ {
     await this._transport.send('set_allow_lan', [allowLan]);
   }
 
-  async getAllowLan(): Promise<boolean> {
+  async getAllowLan() /*: Promise<boolean>*/ {
     const response = await this._transport.send('get_allow_lan');
     if (typeof response === 'boolean') {
       return response;
@@ -389,30 +363,30 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async setOpenVpnEnableIpv6(enableIpv6: boolean): Promise<void> {
+  async setOpenVpnEnableIpv6(enableIpv6 /*: boolean*/) /*: Promise<void>*/ {
     await this._transport.send('set_openvpn_enable_ipv6', [enableIpv6]);
   }
 
-  async getTunnelOptions(): Promise<TunnelOptions> {
+  async getTunnelOptions() /*: Promise<TunnelOptions>*/ {
     const response = await this._transport.send('get_tunnel_options');
     try {
       const validatedObject = validate(TunnelOptionsSchema, response);
 
       return {
         openvpn: {
-          enableIpv6: validatedObject.openvpn.enable_ipv6,
-        },
+          enableIpv6: validatedObject.openvpn.enable_ipv6
+        }
       };
     } catch (error) {
       throw new ResponseParseError('Invalid response from get_tunnel_options', error);
     }
   }
 
-  async setAutoConnect(autoConnect: boolean): Promise<void> {
+  async setAutoConnect(autoConnect /*: boolean*/) /*: Promise<void>*/ {
     await this._transport.send('set_auto_connect', [autoConnect]);
   }
 
-  async getAutoConnect(): Promise<boolean> {
+  async getAutoConnect() /*: Promise<boolean>*/ {
     const response = await this._transport.send('get_auto_connect');
     if (typeof response === 'boolean') {
       return response;
@@ -421,15 +395,15 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async connectTunnel(): Promise<void> {
+  async connectTunnel() /*: Promise<void>*/ {
     await this._transport.send('connect');
   }
 
-  async disconnectTunnel(): Promise<void> {
+  async disconnectTunnel() /*: Promise<void>*/ {
     await this._transport.send('disconnect');
   }
 
-  async getLocation(): Promise<Location> {
+  async getLocation() /*: Promise<Location>*/ {
     // send the IPC with 30s timeout since the backend will wait
     // for a HTTP request before replying
 
@@ -441,7 +415,7 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async getState(): Promise<BackendState> {
+  async getState() /*: Promise<BackendState>*/ {
     const response = await this._transport.send('get_state');
     try {
       return validate(BackendStateSchema, response);
@@ -450,8 +424,8 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  subscribeStateListener(listener: (state: ?BackendState, error: ?Error) => void): Promise<void> {
-    return this._transport.subscribe('new_state', (payload) => {
+  subscribeStateListener(listener /*: (state: ?BackendState, error: ?Error) => void*/) /*: Promise<void>*/ {
+    return this._transport.subscribe('new_state', payload => {
       try {
         const newState = validate(BackendStateSchema, payload);
         listener(newState, null);
@@ -461,7 +435,7 @@ export class DaemonRpc implements DaemonRpcProtocol {
     });
   }
 
-  async getAccountHistory(): Promise<Array<AccountToken>> {
+  async getAccountHistory() /*: Promise<Array<AccountToken>>*/ {
     const response = await this._transport.send('get_account_history');
     try {
       return validate(arrayOf(string), response);
@@ -470,11 +444,11 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async removeAccountFromHistory(accountToken: AccountToken): Promise<void> {
+  async removeAccountFromHistory(accountToken /*: AccountToken*/) /*: Promise<void>*/ {
     await this._transport.send('remove_account_from_history', accountToken);
   }
 
-  async getCurrentVersion(): Promise<string> {
+  async getCurrentVersion() /*: Promise<string>*/ {
     const response = await this._transport.send('get_current_version');
     try {
       return validate(string, response);
@@ -483,7 +457,7 @@ export class DaemonRpc implements DaemonRpcProtocol {
     }
   }
 
-  async getVersionInfo(): Promise<AppVersionInfo> {
+  async getVersionInfo() /*: Promise<AppVersionInfo>*/ {
     const response = await this._transport.send('get_version_info');
     try {
       const versionInfo = validate(AppVersionInfoSchema, response);
@@ -491,8 +465,8 @@ export class DaemonRpc implements DaemonRpcProtocol {
         currentIsSupported: versionInfo.current_is_supported,
         latest: {
           latestStable: versionInfo.latest.latest_stable,
-          latest: versionInfo.latest.latest,
-        },
+          latest: versionInfo.latest.latest
+        }
       };
     } catch (error) {
       throw new ResponseParseError('Invalid response from get_version_info', null);

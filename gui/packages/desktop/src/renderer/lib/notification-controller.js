@@ -3,9 +3,10 @@
 import { remote } from 'electron';
 
 export default class NotificationController {
-  _activeNotification: ?Notification;
+  /*:: _activeNotification: ?Notification;*/
 
-  show(message: string) {
+
+  show(message /*: string*/) {
     const lastNotification = this._activeNotification;
     const sameAsLastNotification = lastNotification && lastNotification.body === message;
 

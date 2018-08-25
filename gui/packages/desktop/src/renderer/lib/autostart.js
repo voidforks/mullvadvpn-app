@@ -33,7 +33,7 @@ export function getOpenAtLogin() {
   }
 }
 
-export async function setOpenAtLogin(openAtLogin: boolean) {
+export async function setOpenAtLogin(openAtLogin /*: boolean*/) {
   // setLoginItemSettings is broken on macOS and cannot delete login items.
   // Issue: https://github.com/electron/electron/issues/10880
   if (process.platform === 'darwin') {
@@ -75,7 +75,7 @@ export async function setOpenAtLogin(openAtLogin: boolean) {
   }
 }
 
-const createDirIfNecessary = async (directory: string) => {
+const createDirIfNecessary = async (directory /*: string*/) => {
   let stat;
   try {
     stat = await statAsync(directory);

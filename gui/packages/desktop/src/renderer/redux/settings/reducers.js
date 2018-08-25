@@ -1,9 +1,8 @@
 // @flow
 
-import type { ReduxAction } from '../store';
-import type { RelayProtocol, RelayLocation } from '../../lib/daemon-rpc';
-
-export type RelaySettingsRedux =
+/*:: import type { ReduxAction } from '../store';*/
+/*:: import type { RelayProtocol, RelayLocation } from '../../lib/daemon-rpc';*/
+/*:: export type RelaySettingsRedux =
   | {|
       normal: {
         location: 'any' | RelayLocation,
@@ -17,78 +16,73 @@ export type RelaySettingsRedux =
         port: number,
         protocol: RelayProtocol,
       },
-    |};
-
-export type RelayLocationCityRedux = {
+    |};*/
+/*:: export type RelayLocationCityRedux = {
   name: string,
   code: string,
   latitude: number,
   longitude: number,
   hasActiveRelays: boolean,
-};
-
-export type RelayLocationRedux = {
+};*/
+/*:: export type RelayLocationRedux = {
   name: string,
   code: string,
   hasActiveRelays: boolean,
   cities: Array<RelayLocationCityRedux>,
-};
-
-export type SettingsReduxState = {
+};*/
+/*:: export type SettingsReduxState = {
   relaySettings: RelaySettingsRedux,
   relayLocations: Array<RelayLocationRedux>,
   autoConnect: boolean,
   allowLan: boolean,
   enableIpv6: boolean,
-};
+};*/
 
-const initialState: SettingsReduxState = {
+
+const initialState /*: SettingsReduxState*/ = {
   relaySettings: {
     normal: {
       location: 'any',
       port: 'any',
-      protocol: 'any',
-    },
+      protocol: 'any'
+    }
   },
   relayLocations: [],
   autoConnect: false,
   allowLan: false,
-  enableIpv6: true,
+  enableIpv6: true
 };
 
-export default function(
-  state: SettingsReduxState = initialState,
-  action: ReduxAction,
-): SettingsReduxState {
+export default function (state /*: SettingsReduxState*/ = initialState, action /*: ReduxAction*/) /*: SettingsReduxState*/ {
   switch (action.type) {
     case 'UPDATE_RELAY':
       return {
         ...state,
-        relaySettings: action.relay,
+        relaySettings: action.relay
       };
 
     case 'UPDATE_RELAY_LOCATIONS':
       return {
         ...state,
-        relayLocations: action.relayLocations,
+        relayLocations: action.relayLocations
       };
 
     case 'UPDATE_ALLOW_LAN':
       return {
         ...state,
-        allowLan: action.allowLan,
+        allowLan: action.allowLan
       };
 
     case 'UPDATE_AUTO_CONNECT':
       return {
         ...state,
-        autoConnect: action.autoConnect,
+        autoConnect: action.autoConnect
       };
 
     case 'UPDATE_ENABLE_IPV6':
       return {
         ...state,
-        enableIpv6: action.enableIpv6,
+        enableIpv6: action.enableIpv6
       };
 
     default:

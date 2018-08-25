@@ -9,8 +9,8 @@ import { ipcRenderer } from 'electron';
  * ShutdownCoordinator will force the shutdown if the returned Promise is not resolved within
  * the allocated time (see SHUTDOWN_TIMEOUT).
  */
-export default function setShutdownHandler(handler: () => Promise<void>) {
-  ipcRenderer.once('app-shutdown', async (event) => {
+export default function setShutdownHandler(handler /*: () => Promise<void>*/) {
+  ipcRenderer.once('app-shutdown', async event => {
     try {
       await handler();
     } catch (error) {

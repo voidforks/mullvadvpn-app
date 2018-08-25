@@ -1,94 +1,94 @@
 // @flow
 
 import { nativeImage } from 'electron';
-import type { NativeImage } from 'electron';
-
-export type OnFrameFn = (image: NativeImage) => void;
-export type OnFinishFn = (void) => void;
-export type KeyframeAnimationOptions = {
+/*:: import type { NativeImage } from 'electron';*/
+/*:: export type OnFrameFn = (image: NativeImage) => void;*/
+/*:: export type OnFinishFn = (void) => void;*/
+/*:: export type KeyframeAnimationOptions = {
   startFrame?: number,
   endFrame?: number,
   beginFromCurrentState?: boolean,
   advanceTo?: 'end',
-};
-export type KeyframeAnimationRange = [number, number];
+};*/
+/*:: export type KeyframeAnimationRange = [number, number];*/
+
 
 export default class KeyframeAnimation {
-  _speed: number = 200; // ms
-  _repeat: boolean = false;
-  _reverse: boolean = false;
-  _alternate: boolean = false;
+  _speed /*: number*/ = 200; // ms
+  _repeat /*: boolean*/ = false;
+  _reverse /*: boolean*/ = false;
+  _alternate /*: boolean*/ = false;
 
-  _onFrame: ?OnFrameFn;
-  _onFinish: ?OnFinishFn;
+  /*:: _onFrame: ?OnFrameFn;*/
+  /*:: _onFinish: ?OnFinishFn;*/
+  /*:: _nativeImages: Array<NativeImage>;*/
+  /*:: _frameRange: KeyframeAnimationRange;*/
+  /*:: _numFrames: number;*/
 
-  _nativeImages: Array<NativeImage>;
-  _frameRange: KeyframeAnimationRange;
-  _numFrames: number;
-  _currentFrame: number = 0;
+  _currentFrame /*: number*/ = 0;
 
-  _isRunning: boolean = false;
-  _isFinished: boolean = false;
-  _isFirstRun: boolean = true;
+  _isRunning /*: boolean*/ = false;
+  _isFinished /*: boolean*/ = false;
+  _isFirstRun /*: boolean*/ = true;
 
   _timeout = null;
 
-  set onFrame(newValue: ?OnFrameFn) {
+  set onFrame(newValue /*: ?OnFrameFn*/) {
     this._onFrame = newValue;
   }
-  get onFrame(): ?OnFrameFn {
+  get onFrame() /*: ?OnFrameFn*/ {
     return this._onFrame;
   }
 
   // called when animation finished for non-repeating animations.
-  set onFinish(newValue: ?OnFinishFn) {
+  set onFinish(newValue /*: ?OnFinishFn*/) {
     this._onFinish = newValue;
   }
-  get onFinish(): ?OnFinishFn {
+  get onFinish() /*: ?OnFinishFn*/ {
     return this._onFinish;
   }
 
   // pace per frame in ms
-  set speed(newValue: number) {
+  set speed(newValue /*: number*/) {
     this._speed = parseInt(newValue);
   }
-  get speed(): number {
+  get speed() /*: number*/ {
     return this._speed;
   }
 
-  set repeat(newValue: boolean) {
+  set repeat(newValue /*: boolean*/) {
     this._repeat = newValue;
   }
-  get repeat(): boolean {
+  get repeat() /*: boolean*/ {
     return this._repeat;
   }
 
-  set reverse(newValue: boolean) {
+  set reverse(newValue /*: boolean*/) {
     this._reverse = newValue;
   }
-  get reverse(): boolean {
+  get reverse() /*: boolean*/ {
     return this._repeat;
   }
 
   // alternates the animation direction when it reaches the end
   // only for repeating animations
-  set alternate(newValue: boolean) {
+  set alternate(newValue /*: boolean*/) {
     this._alternate = !!newValue;
   }
-  get alternate(): boolean {
+  get alternate() /*: boolean*/ {
     return this._alternate;
   }
 
-  get nativeImages(): Array<NativeImage> {
+  get nativeImages() /*: Array<NativeImage>*/ {
     return this._nativeImages.slice();
   }
-  get isFinished(): boolean {
+  get isFinished() /*: boolean*/ {
     return this._isFinished;
   }
 
   // create animation from files matching filename pattern. i.e (bubble-frame-{}.png)
-  static fromFilePattern(filePattern: string, range: KeyframeAnimationRange): KeyframeAnimation {
-    const images: Array<NativeImage> = [];
+  static fromFilePattern(filePattern /*: string*/, range /*: KeyframeAnimationRange*/) /*: KeyframeAnimation*/ {
+    const images /*: Array<NativeImage>*/ = [];
 
     if (range.length !== 2 || range[0] > range[1]) {
       throw new Error('the animation range is invalid');
@@ -102,14 +102,12 @@ export default class KeyframeAnimation {
     return new KeyframeAnimation(images);
   }
 
-  static fromFileSequence(files: Array<string>): KeyframeAnimation {
-    const images: Array<NativeImage> = files.map((filePath) =>
-      nativeImage.createFromPath(filePath),
-    );
+  static fromFileSequence(files /*: Array<string>*/) /*: KeyframeAnimation*/ {
+    const images /*: Array<NativeImage>*/ = files.map(filePath => nativeImage.createFromPath(filePath));
     return new KeyframeAnimation(images);
   }
 
-  constructor(images: Array<NativeImage>) {
+  constructor(images /*: Array<NativeImage>*/) {
     const len = images.length;
     if (len < 1) {
       throw new Error('too few images in animation');
@@ -120,11 +118,11 @@ export default class KeyframeAnimation {
     this._frameRange = [0, len];
   }
 
-  get currentImage(): NativeImage {
+  get currentImage() /*: NativeImage*/ {
     return this._nativeImages[this._currentFrame];
   }
 
-  play(options: KeyframeAnimationOptions = {}) {
+  play(options /*: KeyframeAnimationOptions*/ = {}) {
     const { startFrame, endFrame, beginFromCurrentState, advanceTo } = options;
 
     if (startFrame !== undefined && endFrame !== undefined) {
@@ -238,7 +236,7 @@ export default class KeyframeAnimation {
     }
   }
 
-  _nextFrame(cur: number, frameRange: KeyframeAnimationRange, isReverse: boolean): number {
+  _nextFrame(cur /*: number*/, frameRange /*: KeyframeAnimationRange*/, isReverse /*: boolean*/) /*: number*/ {
     if (isReverse) {
       if (cur < frameRange[0]) {
         return cur + 1;

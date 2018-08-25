@@ -14,15 +14,16 @@ import RpcAddressFile from './rpc-address-file';
 import ShutdownCoordinator from './shutdown-coordinator';
 import { resolveBin } from './proc';
 
-import type { TrayIconType } from './tray-icon-controller';
+/*:: import type { TrayIconType } from './tray-icon-controller';*/
+
 
 const ApplicationMain = {
-  _windowController: (null: ?WindowController),
-  _trayIconController: (null: ?TrayIconController),
+  _windowController: (null /*: ?WindowController*/),
+  _trayIconController: (null /*: ?TrayIconController*/),
 
   _logFilePath: '',
-  _oldLogFilePath: (null: ?string),
-  _connectionFilePollInterval: (null: ?IntervalID),
+  _oldLogFilePath: (null /*: ?string*/),
+  _connectionFilePollInterval: (null /*: ?IntervalID*/),
   _shouldQuit: false,
 
   run() {
@@ -101,9 +102,9 @@ const ApplicationMain = {
         fs.accessSync(this._logFilePath);
         this._oldLogFilePath = path.join(logDirectory, 'frontend.old.log');
         fs.renameSync(this._logFilePath, this._oldLogFilePath);
-      } catch (error) {
-        // No previous log file exists
-      }
+      } catch (error) {}
+      // No previous log file exists
+
 
       // Configure logging to file
       log.transports.console.level = 'debug';
@@ -191,7 +192,7 @@ const ApplicationMain = {
   },
 
   _registerIpcListeners() {
-    ipcMain.on('discover-daemon-connection', async (event) => {
+    ipcMain.on('discover-daemon-connection', async event => {
       const addressFile = new RpcAddressFile();
 
       log.debug(`Waiting for RPC address file: "${addressFile.filePath}"`);
@@ -244,7 +245,7 @@ const ApplicationMain = {
       }
     });
 
-    ipcMain.on('change-tray-icon', (_event: any, type: TrayIconType) => {
+    ipcMain.on('change-tray-icon', (_event /*: any*/, type /*: TrayIconType*/) => {
       const trayIconController = this._trayIconController;
       if (trayIconController) {
         trayIconController.animateToIcon(type);
@@ -265,55 +266,48 @@ const ApplicationMain = {
 
       execFile(executable, args, { windowsHide: true }, (error, stdout, stderr) => {
         if (error) {
-          log.error(
-            `Failed to collect a problem report: ${error.message}
+          log.error(`Failed to collect a problem report: ${error.message}
              Stdout: ${stdout.toString()}
-             Stderr: ${stderr.toString()}`,
-          );
+             Stderr: ${stderr.toString()}`);
 
           event.sender.send('collect-logs-reply', requestId, {
             success: false,
-            error: error.message,
+            error: error.message
           });
         } else {
           log.debug(`Problem report was written to ${reportPath}`);
 
           event.sender.send('collect-logs-reply', requestId, {
             success: true,
-            reportPath,
+            reportPath
           });
         }
       });
     });
 
-    ipcMain.on(
-      'send-problem-report',
-      (event, requestId, email: string, message: string, savedReport: string) => {
-        const executable = resolveBin('problem-report');
-        const args = ['send', '--email', email, '--message', message, '--report', savedReport];
+    ipcMain.on('send-problem-report', (event, requestId, email /*: string*/, message /*: string*/, savedReport /*: string*/) => {
+      const executable = resolveBin('problem-report');
+      const args = ['send', '--email', email, '--message', message, '--report', savedReport];
 
-        execFile(executable, args, { windowsHide: true }, (error, stdout, stderr) => {
-          if (error) {
-            log.error(
-              `Failed to send a problem report: ${error.message}
+      execFile(executable, args, { windowsHide: true }, (error, stdout, stderr) => {
+        if (error) {
+          log.error(`Failed to send a problem report: ${error.message}
            Stdout: ${stdout.toString()}
-           Stderr: ${stderr.toString()}`,
-            );
+           Stderr: ${stderr.toString()}`);
 
-            event.sender.send('send-problem-report-reply', requestId, {
-              success: false,
-              error: error.message,
-            });
-          } else {
-            log.info('Problem report was sent.');
+          event.sender.send('send-problem-report-reply', requestId, {
+            success: false,
+            error: error.message
+          });
+        } else {
+          log.info('Problem report was sent.');
 
-            event.sender.send('send-problem-report-reply', requestId, {
-              success: true,
-            });
-          }
-        });
-      },
-    );
+          event.sender.send('send-problem-report-reply', requestId, {
+            success: true
+          });
+        }
+      });
+    });
   },
 
   async _installDevTools() {
@@ -329,7 +323,7 @@ const ApplicationMain = {
     }
   },
 
-  _createWindow(): BrowserWindow {
+  _createWindow() /*: BrowserWindow*/ {
     const contentHeight = 568;
 
     // the size of transparent area around arrow on macOS
@@ -349,32 +343,33 @@ const ApplicationMain = {
         // prevents renderer process code from not running when window is hidden
         backgroundThrottling: false,
         // Enable experimental features
-        blinkFeatures: 'CSSBackdropFilter',
-      },
+        blinkFeatures: 'CSSBackdropFilter'
+      }
     };
 
     switch (process.platform) {
-      case 'darwin': {
-        // setup window flags to mimic popover on macOS
-        const appWindow = new BrowserWindow({
-          ...options,
-          height: contentHeight + headerBarArrowHeight,
-          minHeight: contentHeight + headerBarArrowHeight,
-          transparent: true,
-        });
+      case 'darwin':
+        {
+          // setup window flags to mimic popover on macOS
+          const appWindow = new BrowserWindow({
+            ...options,
+            height: contentHeight + headerBarArrowHeight,
+            minHeight: contentHeight + headerBarArrowHeight,
+            transparent: true
+          });
 
-        // make the window visible on all workspaces
-        appWindow.setVisibleOnAllWorkspaces(true);
+          // make the window visible on all workspaces
+          appWindow.setVisibleOnAllWorkspaces(true);
 
-        return appWindow;
-      }
+          return appWindow;
+        }
 
       case 'win32':
         // setup window flags to mimic an overlay window
         return new BrowserWindow({
           ...options,
           transparent: true,
-          skipTaskbar: true,
+          skipTaskbar: true
         });
 
       default:
@@ -383,67 +378,47 @@ const ApplicationMain = {
   },
 
   _setAppMenu() {
-    const template = [
-      {
-        label: 'Mullvad',
-        submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'quit' }],
-      },
-      {
-        label: 'Edit',
-        submenu: [
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          { type: 'separator' },
-          { role: 'selectall' },
-        ],
-      },
-    ];
+    const template = [{
+      label: 'Mullvad',
+      submenu: [{ role: 'about' }, { type: 'separator' }, { role: 'quit' }]
+    }, {
+      label: 'Edit',
+      submenu: [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { type: 'separator' }, { role: 'selectall' }]
+    }];
     Menu.setApplicationMenu(Menu.buildFromTemplate(template));
   },
 
-  _addContextMenu(window: BrowserWindow) {
-    const menuTemplate = [
-      { role: 'cut' },
-      { role: 'copy' },
-      { role: 'paste' },
-      { type: 'separator' },
-      { role: 'selectall' },
-    ];
+  _addContextMenu(window /*: BrowserWindow*/) {
+    const menuTemplate = [{ role: 'cut' }, { role: 'copy' }, { role: 'paste' }, { type: 'separator' }, { role: 'selectall' }];
 
     // add inspect element on right click menu
-    window.webContents.on(
-      'context-menu',
-      (_e: Event, props: { x: number, y: number, isEditable: boolean }) => {
-        const inspectTemplate = [
-          {
-            label: 'Inspect element',
-            click() {
-              window.openDevTools({ mode: 'detach' });
-              window.inspectElement(props.x, props.y);
-            },
-          },
-        ];
-
-        if (props.isEditable) {
-          let inputMenu = menuTemplate;
-
-          // mixin 'inspect element' into standard menu when in development mode
-          if (process.env.NODE_ENV === 'development') {
-            inputMenu = menuTemplate.concat([{ type: 'separator' }], inspectTemplate);
-          }
-
-          Menu.buildFromTemplate(inputMenu).popup(window);
-        } else if (process.env.NODE_ENV === 'development') {
-          // display inspect element for all non-editable
-          // elements when in development mode
-          Menu.buildFromTemplate(inspectTemplate).popup(window);
+    window.webContents.on('context-menu', (_e /*: Event*/, props /*: { x: number, y: number, isEditable: boolean }*/) => {
+      const inspectTemplate = [{
+        label: 'Inspect element',
+        click() {
+          window.openDevTools({ mode: 'detach' });
+          window.inspectElement(props.x, props.y);
         }
-      },
-    );
+      }];
+
+      if (props.isEditable) {
+        let inputMenu = menuTemplate;
+
+        // mixin 'inspect element' into standard menu when in development mode
+        if (process.env.NODE_ENV === 'development') {
+          inputMenu = menuTemplate.concat([{ type: 'separator' }], inspectTemplate);
+        }
+
+        Menu.buildFromTemplate(inputMenu).popup(window);
+      } else if (process.env.NODE_ENV === 'development') {
+        // display inspect element for all non-editable
+        // elements when in development mode
+        Menu.buildFromTemplate(inspectTemplate).popup(window);
+      }
+    });
   },
 
-  _createTray(): Tray {
+  _createTray() /*: Tray*/ {
     const tray = new Tray(nativeImage.createEmpty());
     tray.setToolTip('Mullvad VPN');
 
@@ -455,7 +430,7 @@ const ApplicationMain = {
     return tray;
   },
 
-  _installWindowsMenubarAppWindowHandlers(tray: Tray, windowController: WindowController) {
+  _installWindowsMenubarAppWindowHandlers(tray /*: Tray*/, windowController /*: WindowController*/) {
     tray.on('click', () => windowController.toggle());
     tray.on('right-click', () => windowController.hide());
 
@@ -463,11 +438,7 @@ const ApplicationMain = {
       // Detect if blur happened when user had a cursor above the tray icon.
       const trayBounds = tray.getBounds();
       const cursorPos = screen.getCursorScreenPoint();
-      const isCursorInside =
-        cursorPos.x >= trayBounds.x &&
-        cursorPos.y >= trayBounds.y &&
-        cursorPos.x <= trayBounds.x + trayBounds.width &&
-        cursorPos.y <= trayBounds.y + trayBounds.height;
+      const isCursorInside = cursorPos.x >= trayBounds.x && cursorPos.y >= trayBounds.y && cursorPos.x <= trayBounds.x + trayBounds.width && cursorPos.y <= trayBounds.y + trayBounds.height;
       if (!isCursorInside) {
         windowController.hide();
       }
@@ -476,7 +447,7 @@ const ApplicationMain = {
 
   // setup NSEvent monitor to fix inconsistent window.blur on macOS
   // see https://github.com/electron/electron/issues/8689
-  _installMacOsMenubarAppWindowHandlers(tray: Tray, windowController: WindowController) {
+  _installMacOsMenubarAppWindowHandlers(tray /*: Tray*/, windowController /*: WindowController*/) {
     // $FlowFixMe: this module is only available on macOS
     const { NSEventMonitor, NSEventMask } = require('nseventmonitor');
     const macEventMonitor = new NSEventMonitor();
@@ -488,15 +459,15 @@ const ApplicationMain = {
     tray.on('click', () => windowController.toggle());
   },
 
-  _installGenericMenubarAppWindowHandlers(tray: Tray, windowController: WindowController) {
+  _installGenericMenubarAppWindowHandlers(tray /*: Tray*/, windowController /*: WindowController*/) {
     tray.on('click', () => {
       windowController.toggle();
     });
     windowController.show();
   },
 
-  _installLinuxWindowCloseHandler(windowController: WindowController) {
-    windowController.window.on('close', (closeEvent) => {
+  _installLinuxWindowCloseHandler(windowController /*: WindowController*/) {
+    windowController.window.on('close', closeEvent => {
       if (process.platform === 'linux' && !this._shouldQuit) {
         closeEvent.preventDefault();
         windowController.hide();
@@ -505,7 +476,7 @@ const ApplicationMain = {
         return true;
       }
     });
-  },
+  }
 };
 
 ApplicationMain.run();

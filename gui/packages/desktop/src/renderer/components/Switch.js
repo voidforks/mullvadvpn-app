@@ -5,44 +5,45 @@ import * as React from 'react';
 const CLICK_TIMEOUT = 1000;
 const MOVE_THRESHOLD = 10;
 
-export type SwitchProps = {
+/*:: export type SwitchProps = {
   className?: string,
   isOn: boolean,
   onChange: ?(isOn: boolean) => void,
-};
-
-type State = {
+};*/
+/*:: type State = {
   ignoreChange: boolean,
   initialPos: { x: number, y: number },
   startTime: ?number,
-};
+};*/
 
-export default class Switch extends React.Component<SwitchProps, State> {
-  static defaultProps: SwitchProps = {
+
+export default class Switch extends React.Component /*:: <SwitchProps, State>*/ {
+  static defaultProps /*: SwitchProps*/ = {
     isOn: false,
-    onChange: null,
+    onChange: null
   };
 
   state = {
     ignoreChange: false,
     initialPos: { x: 0, y: 0 },
-    startTime: (null: ?number),
+    startTime: (null /*: ?number*/)
   };
 
   isCapturingMouseEvents = false;
-  ref: ?HTMLInputElement;
-  onRef = (e: ?HTMLInputElement) => (this.ref = e);
+  /*:: ref: ?HTMLInputElement;*/
 
-  handleMouseDown = (e: MouseEvent) => {
+  onRef = (e /*: ?HTMLInputElement*/) => this.ref = e;
+
+  handleMouseDown = (e /*: MouseEvent*/) => {
     const { clientX: x, clientY: y } = e;
     this.startCapturingMouseEvents();
     this.setState({
       initialPos: { x, y },
-      startTime: e.timeStamp,
+      startTime: e.timeStamp
     });
   };
 
-  handleMouseMove = (e: MouseEvent) => {
+  handleMouseMove = (e /*: MouseEvent*/) => {
     const inputElement = this.ref;
     const { x: x0 } = this.state.initialPos;
     const { clientX: x, clientY: y } = e;
@@ -64,7 +65,7 @@ export default class Switch extends React.Component<SwitchProps, State> {
     if (isOn !== nextOn) {
       this.setState({
         initialPos: { x, y },
-        ignoreChange: true,
+        ignoreChange: true
       });
 
       if (inputElement) {
@@ -79,9 +80,9 @@ export default class Switch extends React.Component<SwitchProps, State> {
     this.stopCapturingMouseEvents();
   };
 
-  handleChange = (e: Event) => {
+  handleChange = (e /*: Event*/) => {
     const startTime = this.state.startTime;
-    const eventTarget: Object = e.target;
+    const eventTarget /*: Object*/ = e.target;
 
     if (typeof startTime !== 'number') {
       throw new Error('startTime must be a number.');
@@ -99,7 +100,7 @@ export default class Switch extends React.Component<SwitchProps, State> {
     }
   };
 
-  notify(isOn: boolean) {
+  notify(isOn /*: boolean*/) {
     const onChange = this.props.onChange;
     if (onChange) {
       onChange(isOn);
@@ -135,16 +136,6 @@ export default class Switch extends React.Component<SwitchProps, State> {
     // eslint-disable-next-line no-unused-vars
     const { isOn, onChange, ...otherProps } = this.props;
     const className = ('switch ' + (otherProps.className || '')).trim();
-    return (
-      <input
-        {...otherProps}
-        type="checkbox"
-        ref={this.onRef}
-        className={className}
-        checked={isOn}
-        onMouseDown={this.handleMouseDown}
-        onChange={this.handleChange}
-      />
-    );
+    return <input {...otherProps} type="checkbox" ref={this.onRef} className={className} checked={isOn} onMouseDown={this.handleMouseDown} onChange={this.handleChange} />;
   }
 }

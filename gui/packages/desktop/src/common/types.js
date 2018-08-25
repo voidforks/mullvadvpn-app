@@ -1,6 +1,6 @@
 // @flow
 
-export type RpcCredentials = {
+/*:: export type RpcCredentials = {
   connectionString: string,
   sharedSecret: string,
-};
+};*/

@@ -1,23 +1,23 @@
 // @flow
 
-export type DaemonConnectedAction = {
+/*:: export type DaemonConnectedAction = {
   type: 'DAEMON_CONNECTED',
-};
-export type DaemonDisconnectedAction = {
+};*/
+/*:: export type DaemonDisconnectedAction = {
   type: 'DAEMON_DISCONNECTED',
-};
+};*/
+/*:: export type DaemonAction = DaemonConnectedAction | DaemonDisconnectedAction;*/
 
-export type DaemonAction = DaemonConnectedAction | DaemonDisconnectedAction;
 
-function connected(): DaemonConnectedAction {
+function connected() /*: DaemonConnectedAction*/ {
   return {
-    type: 'DAEMON_CONNECTED',
+    type: 'DAEMON_CONNECTED'
   };
 }
 
-function disconnected(): DaemonDisconnectedAction {
+function disconnected() /*: DaemonDisconnectedAction*/ {
   return {
-    type: 'DAEMON_DISCONNECTED',
+    type: 'DAEMON_DISCONNECTED'
   };
 }
 

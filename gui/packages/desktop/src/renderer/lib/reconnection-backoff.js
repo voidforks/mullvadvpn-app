@@ -7,7 +7,7 @@
 export default class ReconnectionBackoff {
   _attempt = 0;
 
-  attempt(handler: () => void) {
+  attempt(handler /*: () => void*/) {
     setTimeout(handler, this._getIncreasedBackoff());
   }
 

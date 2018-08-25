@@ -8,7 +8,7 @@ import SettingsHeader, { HeaderTitle } from './SettingsHeader';
 import Switch from './Switch';
 import styles from './PreferencesStyles';
 
-export type PreferencesProps = {
+/*:: export type PreferencesProps = {
   autoConnect: boolean,
   allowLan: boolean,
   getAutoStart: () => boolean,
@@ -16,25 +16,24 @@ export type PreferencesProps = {
   setAutoConnect: (boolean) => void,
   setAllowLan: (boolean) => void,
   onClose: () => void,
-};
-
-type State = {
+};*/
+/*:: type State = {
   autoStart: boolean,
-};
+};*/
 
-export default class Preferences extends Component<PreferencesProps, State> {
+
+export default class Preferences extends Component /*:: <PreferencesProps, State>*/ {
   state = {
-    autoStart: false,
+    autoStart: false
   };
 
-  constructor(props: PreferencesProps) {
+  constructor(props /*: PreferencesProps*/) {
     super();
     this.state.autoStart = props.getAutoStart();
   }
 
   render() {
-    return (
-      <Layout>
+    return <Layout>
         <Container>
           <View style={styles.preferences}>
             <NavigationBar>
@@ -85,20 +84,17 @@ export default class Preferences extends Component<PreferencesProps, State> {
                 </View>
                 <View style={styles.preferences__cell_footer}>
                   <Text style={styles.preferences__cell_footer_label}>
-                    {
-                      'Allows access to other devices on the same network for sharing, printing etc.'
-                    }
+                    {'Allows access to other devices on the same network for sharing, printing etc.'}
                   </Text>
                 </View>
               </View>
             </View>
           </View>
         </Container>
-      </Layout>
-    );
+      </Layout>;
   }
 
-  _onChangeAutoStart = (autoStart: boolean) => {
+  _onChangeAutoStart = (autoStart /*: boolean*/) => {
     this.props.setAutoStart(autoStart);
     // TODO: Handle failure to set auto-start
     this.setState({ autoStart });

@@ -4,11 +4,7 @@ import log from 'electron-log';
 import * as React from 'react';
 import { bindActionCreators } from 'redux';
 import { Provider } from 'react-redux';
-import {
-  ConnectedRouter,
-  push as pushHistory,
-  replace as replaceHistory,
-} from 'connected-react-router';
+import { ConnectedRouter, push as pushHistory, replace as replaceHistory } from 'connected-react-router';
 import { createMemoryHistory } from 'history';
 import { remote, webFrame, ipcRenderer } from 'electron';
 
@@ -26,27 +22,30 @@ import settingsActions from './redux/settings/actions';
 import versionActions from './redux/version/actions';
 import daemonActions from './redux/daemon/actions';
 
-import type { RpcCredentials } from '../common/types';
-import type {
+/*:: import type { RpcCredentials } from '../common/types';*/
+/*:: import type {
   DaemonRpcProtocol,
   AccountData,
   ConnectionObserver as DaemonConnectionObserver,
-} from './lib/daemon-rpc';
-import type { ReduxStore } from './redux/store';
-import type { AccountToken, BackendState, RelaySettingsUpdate } from './lib/daemon-rpc';
-import type { ConnectionState } from './redux/connection/reducers';
-import type { TrayIconType } from '../main/tray-icon-controller';
+} from './lib/daemon-rpc';*/
+/*:: import type { ReduxStore } from './redux/store';*/
+/*:: import type { AccountToken, BackendState, RelaySettingsUpdate } from './lib/daemon-rpc';*/
+/*:: import type { ConnectionState } from './redux/connection/reducers';*/
+/*:: import type { TrayIconType } from '../main/tray-icon-controller';*/
+
 
 export default class AppRenderer {
   _notificationController = new NotificationController();
-  _daemonRpc: DaemonRpcProtocol = new DaemonRpc();
+  _daemonRpc /*: DaemonRpcProtocol*/ = new DaemonRpc();
   _reconnectBackoff = new ReconnectionBackoff();
-  _credentials: ?RpcCredentials;
-  _openConnectionObserver: ?DaemonConnectionObserver;
-  _closeConnectionObserver: ?DaemonConnectionObserver;
+  /*:: _credentials: ?RpcCredentials;*/
+  /*:: _openConnectionObserver: ?DaemonConnectionObserver;*/
+  /*:: _closeConnectionObserver: ?DaemonConnectionObserver;*/
+
   _memoryHistory = createMemoryHistory();
-  _reduxStore: ReduxStore;
-  _reduxActions: *;
+  /*:: _reduxStore: ReduxStore;*/
+  /*:: _reduxActions: *;*/
+
   _accountDataState = new AccountDataState();
 
   constructor() {
@@ -60,20 +59,17 @@ export default class AppRenderer {
       settings: bindActionCreators(settingsActions, dispatch),
       version: bindActionCreators(versionActions, dispatch),
       daemon: bindActionCreators(daemonActions, dispatch),
-      history: bindActionCreators(
-        {
-          push: pushHistory,
-          replace: replaceHistory,
-        },
-        dispatch,
-      ),
+      history: bindActionCreators({
+        push: pushHistory,
+        replace: replaceHistory
+      }, dispatch)
     };
 
     this._openConnectionObserver = this._daemonRpc.addOpenConnectionObserver(() => {
       this._onOpenConnection();
     });
 
-    this._closeConnectionObserver = this._daemonRpc.addCloseConnectionObserver((error) => {
+    this._closeConnectionObserver = this._daemonRpc.addCloseConnectionObserver(error => {
       this._onCloseConnection(error);
     });
 
@@ -107,13 +103,11 @@ export default class AppRenderer {
   }
 
   renderView() {
-    return (
-      <Provider store={this._reduxStore}>
+    return <Provider store={this._reduxStore}>
         <ConnectedRouter history={this._memoryHistory}>
           {makeRoutes(this._reduxStore.getState, { app: this })}
         </ConnectedRouter>
-      </Provider>
-    );
+      </Provider>;
   }
 
   connect() {
@@ -124,7 +118,7 @@ export default class AppRenderer {
     this._daemonRpc.disconnect();
   }
 
-  async login(accountToken: AccountToken) {
+  async login(accountToken /*: AccountToken*/) {
     const actions = this._reduxActions;
     const history = this._memoryHistory;
     actions.account.startLogin(accountToken);
@@ -193,11 +187,7 @@ export default class AppRenderer {
     const actions = this._reduxActions;
 
     try {
-      await Promise.all([
-        this.disconnectTunnel(),
-        this._daemonRpc.setAccount(null),
-        this._fetchAccountHistory(),
-      ]);
+      await Promise.all([this.disconnectTunnel(), this._daemonRpc.setAccount(null), this._fetchAccountHistory()]);
       actions.account.loggedOut();
       actions.history.replace('/login');
 
@@ -230,7 +220,7 @@ export default class AppRenderer {
     return this._daemonRpc.disconnectTunnel();
   }
 
-  updateRelaySettings(relaySettings: RelaySettingsUpdate) {
+  updateRelaySettings(relaySettings /*: RelaySettingsUpdate*/) {
     return this._daemonRpc.updateRelaySettings(relaySettings);
   }
 
@@ -262,23 +252,23 @@ export default class AppRenderer {
       }
 
       actions.settings.updateRelay({
-        normal: payload,
+        normal: payload
       });
     } else if (relaySettings.custom_tunnel_endpoint) {
       const custom_tunnel_endpoint = relaySettings.custom_tunnel_endpoint;
       const {
         host,
         tunnel: {
-          openvpn: { port, protocol },
-        },
+          openvpn: { port, protocol }
+        }
       } = custom_tunnel_endpoint;
 
       actions.settings.updateRelay({
         custom_tunnel_endpoint: {
           host,
           port,
-          protocol,
-        },
+          protocol
+        }
       });
     }
   }
@@ -313,12 +303,12 @@ export default class AppRenderer {
     }
   }
 
-  async removeAccountFromHistory(accountToken: AccountToken): Promise<void> {
+  async removeAccountFromHistory(accountToken /*: AccountToken*/) /*: Promise<void>*/ {
     await this._daemonRpc.removeAccountFromHistory(accountToken);
     await this._fetchAccountHistory();
   }
 
-  async _fetchAccountHistory(): Promise<void> {
+  async _fetchAccountHistory() /*: Promise<void>*/ {
     const actions = this._reduxActions;
 
     const accountHistory = await this._daemonRpc.getAccountHistory();
@@ -331,17 +321,17 @@ export default class AppRenderer {
 
     log.info('Got relay locations');
 
-    const storedLocations = locations.countries.map((country) => ({
+    const storedLocations = locations.countries.map(country => ({
       name: country.name,
       code: country.code,
-      hasActiveRelays: country.cities.some((city) => city.has_active_relays),
-      cities: country.cities.map((city) => ({
+      hasActiveRelays: country.cities.some(city => city.has_active_relays),
+      cities: country.cities.map(city => ({
         name: city.name,
         code: city.code,
         latitude: city.latitude,
         longitude: city.longitude,
-        hasActiveRelays: city.has_active_relays,
-      })),
+        hasActiveRelays: city.has_active_relays
+      }))
     }));
 
     actions.settings.updateRelayLocations(storedLocations);
@@ -359,25 +349,25 @@ export default class AppRenderer {
       city: location.city,
       latitude: location.latitude,
       longitude: location.longitude,
-      mullvadExitIp: location.mullvad_exit_ip,
+      mullvadExitIp: location.mullvad_exit_ip
     };
 
     actions.connection.newLocation(locationUpdate);
   }
 
-  async setAllowLan(allowLan: boolean) {
+  async setAllowLan(allowLan /*: boolean*/) {
     const actions = this._reduxActions;
     await this._daemonRpc.setAllowLan(allowLan);
     actions.settings.updateAllowLan(allowLan);
   }
 
-  async setEnableIpv6(enableIpv6: boolean) {
+  async setEnableIpv6(enableIpv6 /*: boolean*/) {
     const actions = this._reduxActions;
     await this._daemonRpc.setOpenVpnEnableIpv6(enableIpv6);
     actions.settings.updateEnableIpv6(enableIpv6);
   }
 
-  async setAutoConnect(autoConnect: boolean) {
+  async setAutoConnect(autoConnect /*: boolean*/) {
     const actions = this._reduxActions;
     await this._daemonRpc.setAutoConnect(autoConnect);
     actions.settings.updateAutoConnect(autoConnect);
@@ -417,7 +407,7 @@ export default class AppRenderer {
     actions.version.updateLatest(latestVersionInfo);
   }
 
-  async _connectToDaemon(): Promise<void> {
+  async _connectToDaemon() /*: Promise<void>*/ {
     let credentials;
     try {
       credentials = await this._requestCredentials();
@@ -481,7 +471,7 @@ export default class AppRenderer {
     }
   }
 
-  async _onCloseConnection(error: ?Error) {
+  async _onCloseConnection(error /*: ?Error*/) {
     const actions = this._reduxActions;
 
     // save to redux that the app disconnected from daemon
@@ -508,9 +498,9 @@ export default class AppRenderer {
     }
   }
 
-  _requestCredentials(): Promise<RpcCredentials> {
-    return new Promise((resolve) => {
-      ipcRenderer.once('daemon-connection-ready', (_event, credentials: RpcCredentials) => {
+  _requestCredentials() /*: Promise<RpcCredentials>*/ {
+    return new Promise(resolve => {
+      ipcRenderer.once('daemon-connection-ready', (_event, credentials /*: RpcCredentials*/) => {
         resolve(credentials);
       });
       ipcRenderer.send('discover-daemon-connection');
@@ -526,11 +516,7 @@ export default class AppRenderer {
       if (newState) {
         const connectionState = this._securityStateToConnectionState(newState);
 
-        log.debug(
-          `Got new state from daemon {state: ${newState.state}, target_state: ${
-            newState.target_state
-          }}, translated to '${connectionState}'`,
-        );
+        log.debug(`Got new state from daemon {state: ${newState.state}, target_state: ${newState.target_state}}, translated to '${connectionState}'`);
 
         this._updateConnectionState(connectionState);
         this._refreshStateOnChange();
@@ -539,23 +525,13 @@ export default class AppRenderer {
   }
 
   _fetchInitialState() {
-    return Promise.all([
-      this._fetchSecurityState(),
-      this.fetchRelaySettings(),
-      this._fetchRelayLocations(),
-      this._fetchAllowLan(),
-      this._fetchAutoConnect(),
-      this._fetchLocation(),
-      this._fetchAccountHistory(),
-      this._fetchTunnelOptions(),
-      this._fetchVersionInfo(),
-    ]);
+    return Promise.all([this._fetchSecurityState(), this.fetchRelaySettings(), this._fetchRelayLocations(), this._fetchAllowLan(), this._fetchAutoConnect(), this._fetchLocation(), this._fetchAccountHistory(), this._fetchTunnelOptions(), this._fetchVersionInfo()]);
   }
 
-  _updateTrayIcon(connectionState: ConnectionState) {
-    const iconTypes: { [ConnectionState]: TrayIconType } = {
+  _updateTrayIcon(connectionState /*: ConnectionState*/) {
+    const iconTypes /*: { [ConnectionState]: TrayIconType }*/ = {
       connected: 'secured',
-      connecting: 'securing',
+      connecting: 'securing'
     };
     const type = iconTypes[connectionState] || 'unsecured';
 
@@ -570,7 +546,7 @@ export default class AppRenderer {
     }
   }
 
-  _securityStateToConnectionState(backendState: BackendState): ConnectionState {
+  _securityStateToConnectionState(backendState /*: BackendState*/) /*: ConnectionState*/ {
     if (backendState.state === 'unsecured' && backendState.target_state === 'secured') {
       return 'connecting';
     } else if (backendState.state === 'secured' && backendState.target_state === 'secured') {
@@ -581,7 +557,7 @@ export default class AppRenderer {
     throw new Error('Unsupported state/target state combination: ' + JSON.stringify(backendState));
   }
 
-  _updateConnectionState(connectionState: ConnectionState) {
+  _updateConnectionState(connectionState /*: ConnectionState*/) {
     const actions = this._reduxActions;
     switch (connectionState) {
       case 'connecting':
@@ -599,7 +575,7 @@ export default class AppRenderer {
     this._showNotification(connectionState);
   }
 
-  _showNotification(connectionState: ConnectionState) {
+  _showNotification(connectionState /*: ConnectionState*/) {
     switch (connectionState) {
       case 'connecting':
         this._notificationController.show('Connecting');
@@ -611,12 +587,12 @@ export default class AppRenderer {
         this._notificationController.show('Unsecured');
         break;
       default:
-        log.error(`Unexpected ConnectionState: ${(connectionState: empty)}`);
+        log.error(`Unexpected ConnectionState: ${(connectionState /*: empty*/)}`);
         return;
     }
   }
 
-  async _authenticate(sharedSecret: string) {
+  async _authenticate(sharedSecret /*: string*/) {
     try {
       await this._daemonRpc.authenticate(sharedSecret);
       log.info('Authenticated with backend');
@@ -629,7 +605,8 @@ export default class AppRenderer {
 
 // Helper class to keep track of account data updates
 class AccountDataState {
-  _expiresAt: ?Date;
+  /*:: _expiresAt: ?Date;*/
+
   _isUpdating = false;
 
   isUpdating() {
@@ -640,7 +617,7 @@ class AccountDataState {
     return !this._expiresAt || this._expiresAt < new Date();
   }
 
-  async update(fn: () => Promise<AccountData>): Promise<AccountData> {
+  async update(fn /*: () => Promise<AccountData>*/) /*: Promise<AccountData>*/ {
     this._isUpdating = true;
 
     try {

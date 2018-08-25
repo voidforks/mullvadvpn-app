@@ -3,7 +3,7 @@
 import { ipcRenderer } from 'electron';
 import uuid from 'uuid';
 
-const collectProblemReport = (toRedact: Array<string>): Promise<string> => {
+const collectProblemReport = (toRedact /*: Array<string>*/) /*: Promise<string>*/ => {
   return new Promise((resolve, reject) => {
     const requestId = uuid.v4();
     const responseListener = (_event, responseId, result) => {
@@ -22,7 +22,7 @@ const collectProblemReport = (toRedact: Array<string>): Promise<string> => {
   });
 };
 
-const sendProblemReport = (email: string, message: string, savedReport: string): Promise<void> => {
+const sendProblemReport = (email /*: string*/, message /*: string*/, savedReport /*: string*/) /*: Promise<void>*/ => {
   return new Promise((resolve, reject) => {
     const requestId = uuid.v4();
     const responseListener = (_event, responseId, result) => {

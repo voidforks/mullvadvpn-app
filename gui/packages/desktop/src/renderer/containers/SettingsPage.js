@@ -7,17 +7,18 @@ import { push, goBack } from 'connected-react-router';
 import Settings from '../components/Settings';
 import { links } from '../../config';
 
-import type { ReduxState, ReduxDispatch } from '../redux/store';
-import type { SharedRouteProps } from '../routes';
+/*:: import type { ReduxState, ReduxDispatch } from '../redux/store';*/
+/*:: import type { SharedRouteProps } from '../routes';*/
 
-const mapStateToProps = (state: ReduxState) => ({
+
+const mapStateToProps = (state /*: ReduxState*/) => ({
   loginState: state.account.status,
   accountExpiry: state.account.expiry,
   appVersion: state.version.current,
   consistentVersion: state.version.consistent,
-  upToDateVersion: state.version.upToDate,
+  upToDateVersion: state.version.upToDate
 });
-const mapDispatchToProps = (dispatch: ReduxDispatch, props: SharedRouteProps) => {
+const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteProps*/) => {
   const history = bindActionCreators({ push, goBack }, dispatch);
   return {
     onQuit: () => remote.app.quit(),
@@ -26,12 +27,9 @@ const mapDispatchToProps = (dispatch: ReduxDispatch, props: SharedRouteProps) =>
     onViewSupport: () => history.push('/settings/support'),
     onViewPreferences: () => history.push('/settings/preferences'),
     onViewAdvancedSettings: () => history.push('/settings/advanced'),
-    onExternalLink: (type) => shell.openExternal(links[type]),
-    updateAccountExpiry: () => props.app.updateAccountExpiry(),
+    onExternalLink: type => shell.openExternal(links[type]),
+    updateAccountExpiry: () => props.app.updateAccountExpiry()
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Settings);
+export default connect(mapStateToProps, mapDispatchToProps)(Settings);

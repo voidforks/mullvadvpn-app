@@ -2,18 +2,18 @@
 
 import { remote } from 'electron';
 
-type EventListener = () => void;
-
 // Tiny helper for detecting the window state.
+/*:: type EventListener = () => void;*/
 export default class WindowStateObserver {
-  _onShow: ?EventListener;
-  _onHide: ?EventListener;
+  /*:: _onShow: ?EventListener;*/
+  /*:: _onHide: ?EventListener;*/
+
 
   get onShow() {
     return this._onShow;
   }
 
-  set onShow(listener: ?EventListener) {
+  set onShow(listener /*: ?EventListener*/) {
     const currentWindow = remote.getCurrentWindow();
     const oldListener = this._onShow;
     if (oldListener) {
@@ -31,7 +31,7 @@ export default class WindowStateObserver {
     return this._onHide;
   }
 
-  set onHide(listener: ?EventListener) {
+  set onHide(listener /*: ?EventListener*/) {
     const currentWindow = remote.getCurrentWindow();
     const oldListener = this._onHide;
     if (oldListener) {

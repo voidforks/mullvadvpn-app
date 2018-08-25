@@ -6,40 +6,40 @@ import { colors } from '../../config';
 export default {
   account: Styles.createViewStyle({
     backgroundColor: colors.darkBlue,
-    flex: 1,
+    flex: 1
   }),
   account__container: Styles.createViewStyle({
     flexDirection: 'column',
     flex: 1,
-    paddingBottom: 48,
+    paddingBottom: 48
   }),
   account__scrollview: Styles.createViewStyle({
     flexGrow: 1,
     flexShrink: 1,
-    flexBasis: '100%',
+    flexBasis: '100%'
   }),
   account__content: Styles.createViewStyle({
     flexDirection: 'column',
     flexGrow: 1,
     flexShrink: 0,
-    flexBasis: 'auto',
+    flexBasis: 'auto'
   }),
   account__main: Styles.createViewStyle({
-    marginBottom: 24,
+    marginBottom: 24
   }),
   account__row: Styles.createViewStyle({
     paddingTop: 0,
     paddingBottom: 0,
     paddingLeft: 24,
     paddingRight: 24,
-    marginBottom: 24,
+    marginBottom: 24
   }),
   account__footer: Styles.createViewStyle({
     paddingLeft: 24,
-    paddingRight: 24,
+    paddingRight: 24
   }),
   account__buy_button: Styles.createViewStyle({
-    marginBottom: 24,
+    marginBottom: 24
   }),
   account__row_label: Styles.createTextStyle({
     fontFamily: 'Open Sans',
@@ -48,20 +48,20 @@ export default {
     lineHeight: 20,
     letterSpacing: -0.2,
     color: colors.white60,
-    marginBottom: 9,
+    marginBottom: 9
   }),
   account__row_value: Styles.createTextStyle({
     fontFamily: 'Open Sans',
     fontSize: 16,
     lineHeight: 19,
     fontWeight: '800',
-    color: colors.white,
+    color: colors.white
   }),
   account__out_of_time: Styles.createTextStyle({
     fontFamily: 'Open Sans',
     fontSize: 16,
     fontWeight: '800',
-    color: colors.red,
+    color: colors.red
   }),
   account__footer_label: Styles.createTextStyle({
     fontFamily: 'Open Sans',
@@ -69,6 +69,6 @@ export default {
     fontWeight: '600',
     lineHeight: 20,
     letterSpacing: -0.2,
-    color: colors.white80,
-  }),
+    color: colors.white80
+  })
 };

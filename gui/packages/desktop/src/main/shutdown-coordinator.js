@@ -2,9 +2,10 @@
 
 import log from 'electron-log';
 import { app, ipcMain } from 'electron';
-import type { WebContents } from 'electron';
+
 
 // The timeout before the shutdown is enforced
+/*:: import type { WebContents } from 'electron';*/
 const SHUTDOWN_TIMEOUT = 3000;
 
 /**
@@ -16,10 +17,11 @@ const SHUTDOWN_TIMEOUT = 3000;
 export default class ShutdownCoordinator {
   _canQuit = false;
   _isQuitting = false;
-  _webContents: WebContents;
-  _shutdownTimeout: ?TimeoutID;
+  /*:: _webContents: WebContents;*/
+  /*:: _shutdownTimeout: ?TimeoutID;*/
 
-  constructor(webContents: WebContents) {
+
+  constructor(webContents /*: WebContents*/) {
     this._webContents = webContents;
 
     app.on('before-quit', this._onBeforeQuit);
@@ -27,12 +29,10 @@ export default class ShutdownCoordinator {
   }
 
   dispose() {
-    app
-      .removeListener('before-quit', this._onBeforeQuit)
-      .removeListener('app-shutdown-reply', this._onShutdownReply);
+    app.removeListener('before-quit', this._onBeforeQuit).removeListener('app-shutdown-reply', this._onShutdownReply);
   }
 
-  _onBeforeQuit = (event) => {
+  _onBeforeQuit = event => {
     if (!this._canQuit) {
       // make sure we don't call the shutdown handler twice
       if (!this._isQuitting) {

@@ -1,45 +1,36 @@
 // @flow
 
-import type { AccountToken } from '../../lib/daemon-rpc';
-
-type StartLoginAction = {
+/*:: import type { AccountToken } from '../../lib/daemon-rpc';*/
+/*:: type StartLoginAction = {
   type: 'START_LOGIN',
   accountToken: AccountToken,
-};
-
-type LoginSuccessfulAction = {
+};*/
+/*:: type LoginSuccessfulAction = {
   type: 'LOGIN_SUCCESSFUL',
-};
-
-type LoginFailedAction = {
+};*/
+/*:: type LoginFailedAction = {
   type: 'LOGIN_FAILED',
   error: Error,
-};
-
-type LoggedOutAction = {
+};*/
+/*:: type LoggedOutAction = {
   type: 'LOGGED_OUT',
-};
-
-type ResetLoginErrorAction = {
+};*/
+/*:: type ResetLoginErrorAction = {
   type: 'RESET_LOGIN_ERROR',
-};
-
-type UpdateAccountTokenAction = {
+};*/
+/*:: type UpdateAccountTokenAction = {
   type: 'UPDATE_ACCOUNT_TOKEN',
   token: AccountToken,
-};
-
-type UpdateAccountHistoryAction = {
+};*/
+/*:: type UpdateAccountHistoryAction = {
   type: 'UPDATE_ACCOUNT_HISTORY',
   accountHistory: Array<AccountToken>,
-};
-
-type UpdateAccountExpiryAction = {
+};*/
+/*:: type UpdateAccountExpiryAction = {
   type: 'UPDATE_ACCOUNT_EXPIRY',
   expiry: string,
-};
-
-export type AccountAction =
+};*/
+/*:: export type AccountAction =
   | StartLoginAction
   | LoginSuccessfulAction
   | LoginFailedAction
@@ -47,58 +38,59 @@ export type AccountAction =
   | ResetLoginErrorAction
   | UpdateAccountTokenAction
   | UpdateAccountHistoryAction
-  | UpdateAccountExpiryAction;
+  | UpdateAccountExpiryAction;*/
 
-function startLogin(accountToken: AccountToken): StartLoginAction {
+
+function startLogin(accountToken /*: AccountToken*/) /*: StartLoginAction*/ {
   return {
     type: 'START_LOGIN',
-    accountToken: accountToken,
+    accountToken: accountToken
   };
 }
 
-function loginSuccessful(): LoginSuccessfulAction {
+function loginSuccessful() /*: LoginSuccessfulAction*/ {
   return {
-    type: 'LOGIN_SUCCESSFUL',
+    type: 'LOGIN_SUCCESSFUL'
   };
 }
 
-function loginFailed(error: Error): LoginFailedAction {
+function loginFailed(error /*: Error*/) /*: LoginFailedAction*/ {
   return {
     type: 'LOGIN_FAILED',
-    error,
+    error
   };
 }
 
-function loggedOut(): LoggedOutAction {
+function loggedOut() /*: LoggedOutAction*/ {
   return {
-    type: 'LOGGED_OUT',
+    type: 'LOGGED_OUT'
   };
 }
 
-function resetLoginError(): ResetLoginErrorAction {
+function resetLoginError() /*: ResetLoginErrorAction*/ {
   return {
-    type: 'RESET_LOGIN_ERROR',
+    type: 'RESET_LOGIN_ERROR'
   };
 }
 
-function updateAccountToken(token: AccountToken): UpdateAccountTokenAction {
+function updateAccountToken(token /*: AccountToken*/) /*: UpdateAccountTokenAction*/ {
   return {
     type: 'UPDATE_ACCOUNT_TOKEN',
-    token,
+    token
   };
 }
 
-function updateAccountHistory(accountHistory: Array<AccountToken>): UpdateAccountHistoryAction {
+function updateAccountHistory(accountHistory /*: Array<AccountToken>*/) /*: UpdateAccountHistoryAction*/ {
   return {
     type: 'UPDATE_ACCOUNT_HISTORY',
-    accountHistory,
+    accountHistory
   };
 }
 
-function updateAccountExpiry(expiry: string): UpdateAccountExpiryAction {
+function updateAccountExpiry(expiry /*: string*/) /*: UpdateAccountExpiryAction*/ {
   return {
     type: 'UPDATE_ACCOUNT_EXPIRY',
-    expiry,
+    expiry
   };
 }
 
@@ -110,5 +102,5 @@ export default {
   resetLoginError,
   updateAccountToken,
   updateAccountHistory,
-  updateAccountExpiry,
+  updateAccountExpiry
 };

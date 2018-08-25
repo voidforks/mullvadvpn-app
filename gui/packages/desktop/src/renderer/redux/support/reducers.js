@@ -1,34 +1,31 @@
 // @flow
 
-import type { ReduxAction } from '../store';
-
-export type SupportReduxState = {
+/*:: import type { ReduxAction } from '../store';*/
+/*:: export type SupportReduxState = {
   email: string,
   message: string,
-};
+};*/
 
-const initialState: SupportReduxState = {
+
+const initialState /*: SupportReduxState*/ = {
   email: '',
-  message: '',
+  message: ''
 };
 
-export default function(
-  state: SupportReduxState = initialState,
-  action: ReduxAction,
-): SupportReduxState {
+export default function (state /*: SupportReduxState*/ = initialState, action /*: ReduxAction*/) /*: SupportReduxState*/ {
   switch (action.type) {
     case 'SAVE_REPORT_FORM':
       return {
         ...state,
         email: action.form.email,
-        message: action.form.message,
+        message: action.form.message
       };
 
     case 'CLEAR_REPORT_FORM':
       return {
         ...state,
         email: '',
-        message: '',
+        message: ''
       };
 
     default:

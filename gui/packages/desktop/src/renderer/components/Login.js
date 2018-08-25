@@ -11,10 +11,9 @@ import * as AppButton from './AppButton';
 import styles from './LoginStyles';
 import { colors } from '../../config';
 
-import type { LoginState } from '../redux/account/reducers';
-import type { AccountToken } from '../lib/daemon-rpc';
-
-type Props = {
+/*:: import type { LoginState } from '../redux/account/reducers';*/
+/*:: import type { AccountToken } from '../lib/daemon-rpc';*/
+/*:: type Props = {
   accountToken: ?AccountToken,
   accountHistory: Array<AccountToken>,
   loginError: ?Error,
@@ -25,34 +24,37 @@ type Props = {
   resetLoginError: () => void,
   updateAccountToken: (accountToken: AccountToken) => void,
   removeAccountTokenFromHistory: (accountToken: AccountToken) => Promise<void>,
-};
-
-type State = {
+};*/
+/*:: type State = {
   isActive: boolean,
-};
+};*/
+
 
 const MIN_ACCOUNT_TOKEN_LENGTH = 10;
 
-export default class Login extends Component<Props, State> {
+export default class Login extends Component /*:: <Props, State>*/ {
   state = {
-    isActive: true,
+    isActive: true
   };
 
-  _accountInput: ?TextInput;
+  /*:: _accountInput: ?TextInput;*/
+
   _shouldResetLoginError = false;
 
   _showsFooter = true;
   _footerAnimatedValue = Animated.createValue(0);
-  _footerAnimation: ?Animated.Animation;
-  _footerAnimationStyle: Animated.Style;
-  _footerRef: ?React.Node;
+  /*:: _footerAnimation: ?Animated.Animation;*/
+  /*:: _footerAnimationStyle: Animated.Style;*/
+  /*:: _footerRef: ?React.Node;*/
+
 
   _isLoginButtonActive = false;
   _loginButtonAnimatedValue = Animated.createValue(0);
-  _loginButtonAnimation: ?Animated.Animation;
-  _loginButtonAnimationStyle: Animated.Style;
+  /*:: _loginButtonAnimation: ?Animated.Animation;*/
+  /*:: _loginButtonAnimationStyle: Animated.Style;*/
 
-  constructor(props: Props) {
+
+  constructor(props /*: Props*/) {
     super(props);
 
     if (props.loginState === 'failed') {
@@ -60,24 +62,16 @@ export default class Login extends Component<Props, State> {
     }
 
     this._footerAnimationStyle = Styles.createAnimatedViewStyle({
-      transform: [{ translateY: this._footerAnimatedValue }],
+      transform: [{ translateY: this._footerAnimatedValue }]
     });
 
     this._loginButtonAnimationStyle = Styles.createAnimatedViewStyle({
-      backgroundColor: Animated.interpolate(
-        this._loginButtonAnimatedValue,
-        [0.0, 1.0],
-        [colors.white, colors.green],
-      ),
+      backgroundColor: Animated.interpolate(this._loginButtonAnimatedValue, [0.0, 1.0], [colors.white, colors.green])
     });
   }
 
-  componentDidUpdate(prevProps: Props, _prevState: State) {
-    if (
-      this.props.loginState !== prevProps.loginState &&
-      this.props.loginState === 'failed' &&
-      !this._shouldResetLoginError
-    ) {
+  componentDidUpdate(prevProps /*: Props*/, _prevState /*: State*/) {
+    if (this.props.loginState !== prevProps.loginState && this.props.loginState === 'failed' && !this._shouldResetLoginError) {
       this._shouldResetLoginError = true;
 
       // focus on login field when failed to log in
@@ -92,8 +86,7 @@ export default class Login extends Component<Props, State> {
   }
 
   render() {
-    return (
-      <Layout>
+    return <Layout>
         <Header>
           <Brand />
           <SettingsBarButton onPress={this.props.openSettings} />
@@ -106,17 +99,13 @@ export default class Login extends Component<Props, State> {
             {this._shouldShowLoginForm() && <View>{this._createLoginForm()}</View>}
           </View>
 
-          <Animated.View
-            ref={(ref) => {
-              this._footerRef = ref;
-            }}
-            style={[styles.login_footer, this._footerAnimationStyle]}
-            testName={'footerVisibility ' + this._shouldShowFooter().toString()}>
+          <Animated.View ref={ref => {
+          this._footerRef = ref;
+        }} style={[styles.login_footer, this._footerAnimationStyle]} testName={'footerVisibility ' + this._shouldShowFooter().toString()}>
             {this._createFooter()}
           </Animated.View>
         </Container>
-      </Layout>
-    );
+      </Layout>;
   }
 
   _onCreateAccount = () => this.props.openExternalLink('createAccount');
@@ -125,7 +114,7 @@ export default class Login extends Component<Props, State> {
     this.setState({ isActive: true });
   };
 
-  _onBlur = (e) => {
+  _onBlur = e => {
     const relatedTarget = e.relatedTarget;
 
     // restore focus if click happened within dropdown
@@ -137,7 +126,7 @@ export default class Login extends Component<Props, State> {
     this.setState({ isActive: false });
   };
 
-  async _setLoginButtonActive(isActive: boolean) {
+  async _setLoginButtonActive(isActive /*: boolean*/) {
     if (this._isLoginButtonActive === isActive) {
       return;
     }
@@ -145,7 +134,7 @@ export default class Login extends Component<Props, State> {
     const animation = Animated.timing(this._loginButtonAnimatedValue, {
       toValue: isActive ? 1 : 0,
       easing: Animated.Easing.Linear(),
-      duration: 250,
+      duration: 250
     });
 
     const oldAnimation = this._loginButtonAnimation;
@@ -159,7 +148,7 @@ export default class Login extends Component<Props, State> {
     this._isLoginButtonActive = isActive;
   }
 
-  async _setFooterVisibility(show: boolean) {
+  async _setFooterVisibility(show /*: boolean*/) {
     if (this._showsFooter === show) {
       return;
     }
@@ -172,7 +161,7 @@ export default class Login extends Component<Props, State> {
     const animation = Animated.timing(this._footerAnimatedValue, {
       toValue: value,
       easing: Animated.Easing.InOut(),
-      duration: 250,
+      duration: 250
     });
 
     const oldAnimation = this._footerAnimation;
@@ -192,7 +181,7 @@ export default class Login extends Component<Props, State> {
     }
   };
 
-  _onInputChange = (value: string) => {
+  _onInputChange = (value /*: string*/) => {
     // reset error when user types in the new account number
     if (this._shouldResetLoginError) {
       this._shouldResetLoginError = false;
@@ -221,7 +210,7 @@ export default class Login extends Component<Props, State> {
     const { loginState, loginError } = this.props;
     switch (loginState) {
       case 'failed':
-        return (loginError && loginError.message) || 'Unknown error';
+        return loginError && loginError.message || 'Unknown error';
       case 'logging in':
         return 'Checking account number';
       default:
@@ -231,14 +220,12 @@ export default class Login extends Component<Props, State> {
 
   _getStatusIcon() {
     const statusIconPath = this._getStatusIconPath();
-    return (
-      <View style={styles.status_icon}>
+    return <View style={styles.status_icon}>
         {statusIconPath ? <Img source={statusIconPath} height={48} width={48} alt="" /> : null}
-      </View>
-    );
+      </View>;
   }
 
-  _getStatusIconPath(): ?string {
+  _getStatusIconPath() /*: ?string*/ {
     switch (this.props.loginState) {
       case 'logging in':
         return 'icon-spinner';
@@ -251,7 +238,7 @@ export default class Login extends Component<Props, State> {
     }
   }
 
-  _accountInputGroupStyles(): Array<Object> {
+  _accountInputGroupStyles() /*: Array<Object>*/ {
     const classes = [styles.account_input_group];
     if (this.state.isActive) {
       classes.push(styles.account_input_group__active);
@@ -269,7 +256,7 @@ export default class Login extends Component<Props, State> {
     return classes;
   }
 
-  _accountInputButtonStyles(): Array<Object> {
+  _accountInputButtonStyles() /*: Array<Object>*/ {
     const classes = [styles.input_button];
 
     if (this.props.loginState === 'logging in') {
@@ -281,7 +268,7 @@ export default class Login extends Component<Props, State> {
     return classes;
   }
 
-  _accountInputArrowStyles(): Array<Object> {
+  _accountInputArrowStyles() /*: Array<Object>*/ {
     const { accountToken, loginState } = this.props;
     const classes = [styles.input_arrow];
 
@@ -307,11 +294,7 @@ export default class Login extends Component<Props, State> {
   }
 
   _shouldShowAccountHistory() {
-    return (
-      this._shouldEnableAccountInput() &&
-      this.state.isActive &&
-      this.props.accountHistory.length > 0
-    );
+    return this._shouldEnableAccountInput() && this.state.isActive && this.props.accountHistory.length > 0;
   }
 
   _shouldShowLoginForm() {
@@ -319,22 +302,19 @@ export default class Login extends Component<Props, State> {
   }
 
   _shouldShowFooter() {
-    return (
-      (this.props.loginState === 'none' || this.props.loginState === 'failed') &&
-      !this._shouldShowAccountHistory()
-    );
+    return (this.props.loginState === 'none' || this.props.loginState === 'failed') && !this._shouldShowAccountHistory();
   }
 
-  _onSelectAccountFromHistory = (accountToken) => {
+  _onSelectAccountFromHistory = accountToken => {
     this.props.updateAccountToken(accountToken);
     this.props.login(accountToken);
   };
 
-  _onRemoveAccountFromHistory = (accountToken) => {
+  _onRemoveAccountFromHistory = accountToken => {
     this._removeAccountFromHistory(accountToken);
   };
 
-  async _removeAccountFromHistory(accountToken: AccountToken) {
+  async _removeAccountFromHistory(accountToken /*: AccountToken*/) {
     try {
       await this.props.removeAccountTokenFromHistory(accountToken);
 
@@ -345,125 +325,67 @@ export default class Login extends Component<Props, State> {
   }
 
   _createLoginForm() {
-    return (
-      <View>
+    return <View>
         <Text style={styles.subtitle}>{this._formSubtitle()}</Text>
         <View style={this._accountInputGroupStyles()}>
           <View style={styles.account_input_backdrop}>
-            <TextInput
-              style={styles.account_input_textfield}
-              placeholder="0000 0000 0000 0000"
-              placeholderTextColor={colors.blue40}
-              value={this.props.accountToken || ''}
-              autoCorrect={false}
-              editable={this._shouldEnableAccountInput()}
-              onFocus={this._onFocus}
-              onBlur={this._onBlur}
-              onChangeText={this._onInputChange}
-              onSubmitEditing={this._onSubmit}
-              returnKeyType="done"
-              keyboardType="numeric"
-              autoFocus={true}
-              ref={(ref) => (this._accountInput = ref)}
-              testName="AccountInput"
-            />
-            <Animated.View
-              style={this._accountInputButtonStyles()}
-              onPress={this._onSubmit}
-              testName="account-input-button">
-              <Img
-                style={this._accountInputArrowStyles()}
-                source="icon-arrow"
-                height={16}
-                width={24}
-                tintColor="currentColor"
-              />
+            <TextInput style={styles.account_input_textfield} placeholder="0000 0000 0000 0000" placeholderTextColor={colors.blue40} value={this.props.accountToken || ''} autoCorrect={false} editable={this._shouldEnableAccountInput()} onFocus={this._onFocus} onBlur={this._onBlur} onChangeText={this._onInputChange} onSubmitEditing={this._onSubmit} returnKeyType="done" keyboardType="numeric" autoFocus={true} ref={ref => this._accountInput = ref} testName="AccountInput" />
+            <Animated.View style={this._accountInputButtonStyles()} onPress={this._onSubmit} testName="account-input-button">
+              <Img style={this._accountInputArrowStyles()} source="icon-arrow" height={16} width={24} tintColor="currentColor" />
             </Animated.View>
           </View>
           <Accordion height={this._shouldShowAccountHistory() ? 'auto' : 0}>
-            {
-              <AccountDropdown
-                items={this.props.accountHistory.slice().reverse()}
-                onSelect={this._onSelectAccountFromHistory}
-                onRemove={this._onRemoveAccountFromHistory}
-              />
-            }
+            {<AccountDropdown items={this.props.accountHistory.slice().reverse()} onSelect={this._onSelectAccountFromHistory} onRemove={this._onRemoveAccountFromHistory} />}
           </Accordion>
         </View>
-      </View>
-    );
+      </View>;
   }
 
   _createFooter() {
-    return (
-      <View>
+    return <View>
         <Text style={styles.login_footer__prompt}>{"Don't have an account number?"}</Text>
         <AppButton.BlueButton onPress={this._onCreateAccount}>
           <AppButton.Label>Create account</AppButton.Label>
           <Img source="icon-extLink" height={16} width={16} />
         </AppButton.BlueButton>
-      </View>
-    );
+      </View>;
   }
 }
 
-type AccountDropdownProps = {
+/*:: type AccountDropdownProps = {
   items: Array<AccountToken>,
   onSelect: (value: AccountToken) => void,
   onRemove: (value: AccountToken) => void,
-};
+};*/
 
-class AccountDropdown extends React.Component<AccountDropdownProps> {
+
+class AccountDropdown extends React.Component /*:: <AccountDropdownProps>*/ {
   render() {
     const uniqueItems = [...new Set(this.props.items)];
-    return (
-      <View>
-        {uniqueItems.map((token) => (
-          <AccountDropdownItem
-            key={token}
-            value={token}
-            label={token}
-            onSelect={this.props.onSelect}
-            onRemove={this.props.onRemove}
-          />
-        ))}
-      </View>
-    );
+    return <View>
+        {uniqueItems.map(token => <AccountDropdownItem key={token} value={token} label={token} onSelect={this.props.onSelect} onRemove={this.props.onRemove} />)}
+      </View>;
   }
 }
 
-type AccountDropdownItemProps = {
+/*:: type AccountDropdownItemProps = {
   label: string,
   value: AccountToken,
   onRemove: (value: AccountToken) => void,
   onSelect: (value: AccountToken) => void,
-};
+};*/
 
-class AccountDropdownItem extends React.Component<AccountDropdownItemProps> {
+
+class AccountDropdownItem extends React.Component /*:: <AccountDropdownItemProps>*/ {
   render() {
-    return (
-      <View>
+    return <View>
         <View style={styles.account_dropdown__spacer} />
-        <Cell.CellButton
-          style={styles.account_dropdown__item}
-          cellHoverStyle={styles.account_dropdown__item_hover}>
-          <Cell.Label
-            style={styles.account_dropdown__label}
-            cellHoverStyle={styles.account_dropdown__label_hover}
-            onPress={() => this.props.onSelect(this.props.value)}>
+        <Cell.CellButton style={styles.account_dropdown__item} cellHoverStyle={styles.account_dropdown__item_hover}>
+          <Cell.Label style={styles.account_dropdown__label} cellHoverStyle={styles.account_dropdown__label_hover} onPress={() => this.props.onSelect(this.props.value)}>
             {this.props.label}
           </Cell.Label>
-          <Img
-            style={styles.account_dropdown__remove}
-            cellHoverStyle={styles.account_dropdown__remove_cell_hover}
-            hoverStyle={styles.account_dropdown__remove_hover}
-            source="icon-close-sml"
-            height={16}
-            width={16}
-            onPress={() => this.props.onRemove(this.props.value)}
-          />
+          <Img style={styles.account_dropdown__remove} cellHoverStyle={styles.account_dropdown__remove_cell_hover} hoverStyle={styles.account_dropdown__remove_hover} source="icon-close-sml" height={16} width={16} onPress={() => this.props.onRemove(this.props.value)} />
         </Cell.CellButton>
-      </View>
-    );
+      </View>;
   }
 }

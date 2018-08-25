@@ -1,16 +1,15 @@
 // @flow
 
 import { screen } from 'electron';
-import type { BrowserWindow, Tray, Display } from 'electron';
-
-type Position = { x: number, y: number };
-
-interface WindowPositioning {
+/*:: import type { BrowserWindow, Tray, Display } from 'electron';*/
+/*:: type Position = { x: number, y: number };*/
+/*:: interface WindowPositioning {
   getPosition(window: BrowserWindow): Position;
-}
+}*/
 
-class StandaloneWindowPositioning implements WindowPositioning {
-  getPosition(window: BrowserWindow): Position {
+
+class StandaloneWindowPositioning implements /*:: WindowPositioning*/ {
+  getPosition(window /*: BrowserWindow*/) /*: Position*/ {
     const windowBounds = window.getBounds();
 
     const primaryDisplay = screen.getPrimaryDisplay();
@@ -25,14 +24,15 @@ class StandaloneWindowPositioning implements WindowPositioning {
   }
 }
 
-class AttachedToTrayWindowPositioning implements WindowPositioning {
-  _tray: Tray;
+class AttachedToTrayWindowPositioning implements /*:: WindowPositioning*/ {
+  /*:: _tray: Tray;*/
 
-  constructor(tray: Tray) {
+
+  constructor(tray /*: Tray*/) {
     this._tray = tray;
   }
 
-  getPosition(window: BrowserWindow): Position {
+  getPosition(window /*: BrowserWindow*/) /*: Position*/ {
     const windowBounds = window.getBounds();
     const trayBounds = this._tray.getBounds();
 
@@ -43,7 +43,7 @@ class AttachedToTrayWindowPositioning implements WindowPositioning {
     const maxY = workArea.y + workArea.height - windowBounds.height;
 
     let x = 0,
-      y = 0;
+        y = 0;
     switch (placement) {
       case 'top':
         x = trayBounds.x + (trayBounds.width - windowBounds.width) * 0.5;
@@ -83,20 +83,21 @@ class AttachedToTrayWindowPositioning implements WindowPositioning {
         // macOS has menubar always placed at the top
         return 'top';
 
-      case 'win32': {
-        // taskbar occupies some part of the screen excluded from work area
-        const primaryDisplay = screen.getPrimaryDisplay();
-        const displaySize = primaryDisplay.size;
-        const workArea = primaryDisplay.workArea;
+      case 'win32':
+        {
+          // taskbar occupies some part of the screen excluded from work area
+          const primaryDisplay = screen.getPrimaryDisplay();
+          const displaySize = primaryDisplay.size;
+          const workArea = primaryDisplay.workArea;
 
-        if (workArea.width < displaySize.width) {
-          return workArea.x > 0 ? 'left' : 'right';
-        } else if (workArea.height < displaySize.height) {
-          return workArea.y > 0 ? 'top' : 'bottom';
-        } else {
-          return 'none';
+          if (workArea.width < displaySize.width) {
+            return workArea.x > 0 ? 'left' : 'right';
+          } else if (workArea.height < displaySize.height) {
+            return workArea.y > 0 ? 'top' : 'bottom';
+          } else {
+            return 'none';
+          }
         }
-      }
 
       default:
         return 'none';
@@ -105,15 +106,16 @@ class AttachedToTrayWindowPositioning implements WindowPositioning {
 }
 
 export default class WindowController {
-  _window: BrowserWindow;
-  _windowPositioning: WindowPositioning;
+  /*:: _window: BrowserWindow;*/
+  /*:: _windowPositioning: WindowPositioning;*/
+
   _isWindowReady = false;
 
-  get window(): BrowserWindow {
+  get window() /*: BrowserWindow*/ {
     return this._window;
   }
 
-  constructor(window: BrowserWindow, tray: Tray) {
+  constructor(window /*: BrowserWindow*/, tray /*: Tray*/) {
     this._window = window;
 
     if (process.platform === 'linux') {
@@ -126,7 +128,7 @@ export default class WindowController {
     this._installWindowReadyHandlers();
   }
 
-  show(whenReady: boolean = true) {
+  show(whenReady /*: boolean*/ = true) {
     if (whenReady) {
       this._executeWhenWindowIsReady(() => this._showImmediately());
     } else {
@@ -168,7 +170,7 @@ export default class WindowController {
     });
   }
 
-  _onDisplayMetricsChanged = (_event: any, _display: Display, changedMetrics: Array<string>) => {
+  _onDisplayMetricsChanged = (_event /*: any*/, _display /*: Display*/, changedMetrics /*: Array<string>*/) => {
     if (changedMetrics.includes('workArea') && this._window.isVisible()) {
       this._updatePosition();
     }
@@ -180,7 +182,7 @@ export default class WindowController {
     });
   }
 
-  _executeWhenWindowIsReady(closure: () => any) {
+  _executeWhenWindowIsReady(closure /*: () => any*/) {
     if (this._isWindowReady) {
       closure();
     } else {

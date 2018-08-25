@@ -8,15 +8,12 @@ import { push } from 'connected-react-router';
 import { links } from '../../config';
 import Connect from '../components/Connect';
 
-import type { ReduxState, ReduxDispatch } from '../redux/store';
-import type { SharedRouteProps } from '../routes';
+/*:: import type { ReduxState, ReduxDispatch } from '../redux/store';*/
+/*:: import type { SharedRouteProps } from '../routes';*/
+/*:: import type { RelaySettingsRedux, RelayLocationRedux } from '../redux/settings/reducers';*/
 
-import type { RelaySettingsRedux, RelayLocationRedux } from '../redux/settings/reducers';
 
-function getRelayName(
-  relaySettings: RelaySettingsRedux,
-  relayLocations: Array<RelayLocationRedux>,
-): string {
+function getRelayName(relaySettings /*: RelaySettingsRedux*/, relayLocations /*: Array<RelayLocationRedux>*/) /*: string*/ {
   if (relaySettings.normal) {
     const location = relaySettings.normal.location;
 
@@ -46,15 +43,15 @@ function getRelayName(
   }
 }
 
-const mapStateToProps = (state: ReduxState) => {
+const mapStateToProps = (state /*: ReduxState*/) => {
   return {
     accountExpiry: state.account.expiry,
     selectedRelayName: getRelayName(state.settings.relaySettings, state.settings.relayLocations),
-    connection: state.connection,
+    connection: state.connection
   };
 };
 
-const mapDispatchToProps = (dispatch: ReduxDispatch, props: SharedRouteProps) => {
+const mapDispatchToProps = (dispatch /*: ReduxDispatch*/, props /*: SharedRouteProps*/) => {
   const history = bindActionCreators({ push }, dispatch);
 
   return {
@@ -78,12 +75,9 @@ const mapDispatchToProps = (dispatch: ReduxDispatch, props: SharedRouteProps) =>
         log.error(`Failed to disconnect the tunnel: ${error.message}`);
       }
     },
-    onExternalLink: (type) => shell.openExternal(links[type]),
-    updateAccountExpiry: () => props.app.updateAccountExpiry(),
+    onExternalLink: type => shell.openExternal(links[type]),
+    updateAccountExpiry: () => props.app.updateAccountExpiry()
   };
 };
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(Connect);
+export default connect(mapStateToProps, mapDispatchToProps)(Connect);

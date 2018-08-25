@@ -1,20 +1,16 @@
 // @flow
 
-import type { Ip } from '../../lib/daemon-rpc';
-
-type ConnectingAction = {
+/*:: import type { Ip } from '../../lib/daemon-rpc';*/
+/*:: type ConnectingAction = {
   type: 'CONNECTING',
-};
-
-type ConnectedAction = {
+};*/
+/*:: type ConnectedAction = {
   type: 'CONNECTED',
-};
-
-type DisconnectedAction = {
+};*/
+/*:: type DisconnectedAction = {
   type: 'DISCONNECTED',
-};
-
-type NewLocationAction = {
+};*/
+/*:: type NewLocationAction = {
   type: 'NEW_LOCATION',
   newLocation: {
     ip: Ip,
@@ -24,58 +20,56 @@ type NewLocationAction = {
     longitude: number,
     mullvadExitIp: boolean,
   },
-};
-
-type OnlineAction = {
+};*/
+/*:: type OnlineAction = {
   type: 'ONLINE',
-};
-
-type OfflineAction = {
+};*/
+/*:: type OfflineAction = {
   type: 'OFFLINE',
-};
-
-export type ConnectionAction =
+};*/
+/*:: export type ConnectionAction =
   | NewLocationAction
   | ConnectingAction
   | ConnectedAction
   | DisconnectedAction
   | OnlineAction
-  | OfflineAction;
+  | OfflineAction;*/
 
-function connecting(): ConnectingAction {
+
+function connecting() /*: ConnectingAction*/ {
   return {
-    type: 'CONNECTING',
+    type: 'CONNECTING'
   };
 }
 
-function connected(): ConnectedAction {
+function connected() /*: ConnectedAction*/ {
   return {
-    type: 'CONNECTED',
+    type: 'CONNECTED'
   };
 }
 
-function disconnected(): DisconnectedAction {
+function disconnected() /*: DisconnectedAction*/ {
   return {
-    type: 'DISCONNECTED',
+    type: 'DISCONNECTED'
   };
 }
 
-function newLocation(newLoc: $PropertyType<NewLocationAction, 'newLocation'>): NewLocationAction {
+function newLocation(newLoc /*: $PropertyType<NewLocationAction, 'newLocation'>*/) /*: NewLocationAction*/ {
   return {
     type: 'NEW_LOCATION',
-    newLocation: newLoc,
+    newLocation: newLoc
   };
 }
 
-function online(): OnlineAction {
+function online() /*: OnlineAction*/ {
   return {
-    type: 'ONLINE',
+    type: 'ONLINE'
   };
 }
 
-function offline(): OfflineAction {
+function offline() /*: OfflineAction*/ {
   return {
-    type: 'OFFLINE',
+    type: 'OFFLINE'
   };
 }
 
@@ -85,5 +79,5 @@ export default {
   connected,
   disconnected,
   online,
-  offline,
+  offline
 };

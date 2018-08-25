@@ -8,73 +8,65 @@ import Img from './Img';
 
 export class Label extends Text {}
 
-type Props = {
+/*:: type Props = {
   children?: React.Node,
   style?: Object,
   disabled: boolean,
-};
-
-type State = {
+};*/
+/*:: type State = {
   hovered: boolean,
-};
+};*/
 
-class BaseButton extends Component<Props, State> {
+
+class BaseButton extends Component /*:: <Props, State>*/ {
   state = { hovered: false };
 
   textStyle = () => styles.white;
   iconStyle = () => styles.white;
-  backgroundStyle = () => (this.state.hovered ? styles.white80 : styles.white);
+  backgroundStyle = () => this.state.hovered ? styles.white80 : styles.white;
 
-  onHoverStart = () => (!this.props.disabled ? this.setState({ hovered: true }) : null);
-  onHoverEnd = () => (!this.props.disabled ? this.setState({ hovered: false }) : null);
+  onHoverStart = () => !this.props.disabled ? this.setState({ hovered: true }) : null;
+  onHoverEnd = () => !this.props.disabled ? this.setState({ hovered: false }) : null;
   render() {
     const { children, style, ...otherProps } = this.props;
-    return (
-      <Button
-        {...otherProps}
-        style={[styles.common, this.backgroundStyle(), style]}
-        onHoverStart={this.onHoverStart}
-        onHoverEnd={this.onHoverEnd}>
-        {React.Children.map(children, (node) => {
-          if (React.isValidElement(node)) {
-            let updatedProps = {};
+    return <Button {...otherProps} style={[styles.common, this.backgroundStyle(), style]} onHoverStart={this.onHoverStart} onHoverEnd={this.onHoverEnd}>
+        {React.Children.map(children, node => {
+        if (React.isValidElement(node)) {
+          let updatedProps = {};
 
-            if (node.type === Label) {
-              updatedProps = { style: [styles.label, this.textStyle()] };
-            }
-
-            if (node.type === Img) {
-              updatedProps = { tintColor: 'currentColor', style: [styles.icon, this.iconStyle()] };
-            }
-
-            return React.cloneElement(node, updatedProps);
-          } else {
-            return <Label style={[styles.label, this.textStyle()]}>{children}</Label>;
+          if (node.type === Label) {
+            updatedProps = { style: [styles.label, this.textStyle()] };
           }
-        })}
-      </Button>
-    );
+
+          if (node.type === Img) {
+            updatedProps = { tintColor: 'currentColor', style: [styles.icon, this.iconStyle()] };
+          }
+
+          return React.cloneElement(node, updatedProps);
+        } else {
+          return <Label style={[styles.label, this.textStyle()]}>{children}</Label>;
+        }
+      })}
+      </Button>;
   }
 }
 
 export class RedButton extends BaseButton {
-  backgroundStyle = () => (this.state.hovered ? styles.redHover : styles.red);
+  backgroundStyle = () => this.state.hovered ? styles.redHover : styles.red;
 }
 
 export class GreenButton extends BaseButton {
-  backgroundStyle = () => (this.state.hovered ? styles.greenHover : styles.green);
+  backgroundStyle = () => this.state.hovered ? styles.greenHover : styles.green;
 }
 
 export class BlueButton extends BaseButton {
-  backgroundStyle = () => (this.state.hovered ? styles.blueHover : styles.blue);
+  backgroundStyle = () => this.state.hovered ? styles.blueHover : styles.blue;
 }
 
 export class TransparentButton extends BaseButton {
-  backgroundStyle = () =>
-    this.state.hovered ? blurStyles.transparentHover : blurStyles.transparent;
+  backgroundStyle = () => this.state.hovered ? blurStyles.transparentHover : blurStyles.transparent;
 }
 
 export class RedTransparentButton extends BaseButton {
-  backgroundStyle = () =>
-    this.state.hovered ? blurStyles.redTransparentHover : blurStyles.redTransparent;
+  backgroundStyle = () => this.state.hovered ? blurStyles.redTransparentHover : blurStyles.redTransparent;
 }

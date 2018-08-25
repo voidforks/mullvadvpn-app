@@ -7,8 +7,8 @@ const styles = {
   darwin: Styles.createViewStyle({
     WebkitMask: `
       url(../assets/images/app-triangle.svg) 50% 0% no-repeat,
-      url(../assets/images/app-header-backdrop.svg) no-repeat`,
-  }),
+      url(../assets/images/app-header-backdrop.svg) no-repeat`
+  })
 };
 
 export default class PlatformWindow extends Component {

@@ -11,9 +11,8 @@ import styles from './AccountStyles';
 import Img from './Img';
 import WindowStateObserver from '../lib/window-state-observer';
 
-import type { AccountToken } from '../lib/daemon-rpc';
-
-type Props = {
+/*:: import type { AccountToken } from '../lib/daemon-rpc';*/
+/*:: type Props = {
   accountToken: AccountToken,
   accountExpiry: string,
   expiryLocale: string,
@@ -21,21 +20,22 @@ type Props = {
   onLogout: () => void,
   onClose: () => void,
   onBuyMore: () => void,
-};
-
-type State = {
+};*/
+/*:: type State = {
   isRefreshingExpiry: boolean,
   showAccountTokenCopiedMessage: boolean,
-};
+};*/
 
-export default class Account extends Component<Props, State> {
+
+export default class Account extends Component /*:: <Props, State>*/ {
   state = {
     isRefreshingExpiry: false,
-    showAccountTokenCopiedMessage: false,
+    showAccountTokenCopiedMessage: false
   };
 
   _isMounted = false;
-  _copyTimer: ?TimeoutID;
+  /*:: _copyTimer: ?TimeoutID;*/
+
   _windowStateObserver = new WindowStateObserver();
 
   componentDidMount() {
@@ -61,10 +61,7 @@ export default class Account extends Component<Props, State> {
     if (this._copyTimer) {
       clearTimeout(this._copyTimer);
     }
-    this._copyTimer = setTimeout(
-      () => this.setState({ showAccountTokenCopiedMessage: false }),
-      3000,
-    );
+    this._copyTimer = setTimeout(() => this.setState({ showAccountTokenCopiedMessage: false }), 3000);
     this.setState({ showAccountTokenCopiedMessage: true });
     Clipboard.setText(this.props.accountToken);
   }
@@ -77,11 +74,10 @@ export default class Account extends Component<Props, State> {
       month: 'long',
       year: 'numeric',
       hour: 'numeric',
-      minute: 'numeric',
+      minute: 'numeric'
     });
 
-    return (
-      <Layout>
+    return <Layout>
         <Container>
           <View style={styles.account}>
             <NavigationBar>
@@ -97,33 +93,20 @@ export default class Account extends Component<Props, State> {
                 <View style={styles.account__main}>
                   <View style={styles.account__row}>
                     <Text style={styles.account__row_label}>Account ID</Text>
-                    <Text
-                      style={styles.account__row_value}
-                      onPress={this.onAccountTokenClick.bind(this)}>
-                      {this.state.showAccountTokenCopiedMessage
-                        ? 'COPIED TO CLIPBOARD!'
-                        : this.props.accountToken}
+                    <Text style={styles.account__row_value} onPress={this.onAccountTokenClick.bind(this)}>
+                      {this.state.showAccountTokenCopiedMessage ? 'COPIED TO CLIPBOARD!' : this.props.accountToken}
                     </Text>
                   </View>
 
                   <View style={styles.account__row}>
                     <Text style={styles.account__row_label}>Paid until</Text>
-                    {isOutOfTime ? (
-                      <Text style={styles.account__out_of_time} testName="account__out_of_time">
+                    {isOutOfTime ? <Text style={styles.account__out_of_time} testName="account__out_of_time">
                         {'OUT OF TIME'}
-                      </Text>
-                    ) : (
-                      <Text style={styles.account__row_value}>{formattedExpiry}</Text>
-                    )}
+                      </Text> : <Text style={styles.account__row_value}>{formattedExpiry}</Text>}
                   </View>
 
                   <View style={styles.account__footer}>
-                    <AppButton.GreenButton
-                      style={styles.account__buy_button}
-                      onPress={this.props.onBuyMore}
-                      text="Buy more credit"
-                      icon="icon-extLink"
-                      testName="account__buymore">
+                    <AppButton.GreenButton style={styles.account__buy_button} onPress={this.props.onBuyMore} text="Buy more credit" icon="icon-extLink" testName="account__buymore">
                       <AppButton.Label>Buy more credit</AppButton.Label>
                       <Img source="icon-extLink" height={16} width={16} />
                     </AppButton.GreenButton>
@@ -136,8 +119,7 @@ export default class Account extends Component<Props, State> {
             </View>
           </View>
         </Container>
-      </Layout>
-    );
+      </Layout>;
   }
 
   async _refreshAccountExpiry() {

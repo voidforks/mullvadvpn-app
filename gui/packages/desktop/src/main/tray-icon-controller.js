@@ -2,17 +2,18 @@
 
 import path from 'path';
 import KeyframeAnimation from './keyframe-animation';
-import type { Tray } from 'electron';
+/*:: import type { Tray } from 'electron';*/
+/*:: export type TrayIconType = 'unsecured' | 'securing' | 'secured';*/
 
-export type TrayIconType = 'unsecured' | 'securing' | 'secured';
 
 export default class TrayIconController {
-  _animation: ?KeyframeAnimation;
-  _iconType: TrayIconType;
+  /*:: _animation: ?KeyframeAnimation;*/
+  /*:: _iconType: TrayIconType;*/
 
-  constructor(tray: Tray, initialType: TrayIconType) {
+
+  constructor(tray /*: Tray*/, initialType /*: TrayIconType*/) {
     const animation = this._createAnimation();
-    animation.onFrame = (img) => tray.setImage(img);
+    animation.onFrame = img => tray.setImage(img);
     animation.reverse = this._isReverseAnimation(initialType);
     animation.play({ advanceTo: 'end' });
 
@@ -27,11 +28,11 @@ export default class TrayIconController {
     }
   }
 
-  get iconType(): TrayIconType {
+  get iconType() /*: TrayIconType*/ {
     return this._iconType;
   }
 
-  animateToIcon(type: TrayIconType) {
+  animateToIcon(type /*: TrayIconType*/) {
     if (this._iconType === type || !this._animation) {
       return;
     }
@@ -48,7 +49,7 @@ export default class TrayIconController {
     this._iconType = type;
   }
 
-  _createAnimation(): KeyframeAnimation {
+  _createAnimation() /*: KeyframeAnimation*/ {
     const basePath = path.resolve(path.join(__dirname, '../assets/images/menubar icons'));
     const filePath = path.join(basePath, 'lock-{}.png');
     const animation = KeyframeAnimation.fromFilePattern(filePath, [1, 10]);
@@ -56,7 +57,7 @@ export default class TrayIconController {
     return animation;
   }
 
-  _isReverseAnimation(type: TrayIconType): boolean {
+  _isReverseAnimation(type /*: TrayIconType*/) /*: boolean*/ {
     return type === 'unsecured';
   }
 }
