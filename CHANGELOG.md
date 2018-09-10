@@ -28,6 +28,8 @@ Line wrap the file at 100 chars.                                              Th
 - Move the CLI binary (`mullvad`) back into the `Resources/` directory. A bug caused the app to not
   be signed if it was placed in the app root directory.
 
+#### Linux
+- Add support for DNS configuration using systemd-resolved and resolvconf.
 
 ## [2018.3-beta1] - 2018-09-13
 ### Added
