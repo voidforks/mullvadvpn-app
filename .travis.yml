@@ -92,7 +92,13 @@ matrix:
     - language: rust
       rust: stable
       os: windows
-      cache: cargo
+      cache:
+        cargo: true
+        directories:
+          - windows\nsis-plugins\bin
+          - windows\windns\bin
+          - windows\winfw\bin
+          - windows\winroute\bin
       before_script: *rust_before_script
       script: &rust_windows_script
         - export PATH="/c/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin/amd64/:$PATH"
