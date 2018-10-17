@@ -64,12 +64,13 @@ matrix:
       cache: cargo
       before_script: *rust_before_script
       script:
-        - cargo build --verbose
-        - cargo test --verbose
         # Install and run rustfmt on nightly only until rustfmt.toml settings are stabilized.
         - rustup component add rustfmt-preview
         - cargo fmt --version || true
         - cargo fmt -- --check --unstable-features
+        # Run normal builds and tests
+        - cargo build --verbose
+        - cargo test --verbose
 
     - language: rust
       rust: beta
