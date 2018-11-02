@@ -1,8 +1,5 @@
-// @flow
-
 import log from 'electron-log';
-import { app, ipcMain } from 'electron';
-import type { WebContents } from 'electron';
+import { app, ipcMain, WebContents } from 'electron';
 
 // The timeout before the shutdown is enforced
 const SHUTDOWN_TIMEOUT = 3000;
@@ -17,7 +14,7 @@ export default class ShutdownCoordinator {
   _canQuit = false;
   _isQuitting = false;
   _webContents: WebContents;
-  _shutdownTimeout: ?TimeoutID;
+  _shutdownTimeout: NodeJS.Timer | null;
 
   constructor(webContents: WebContents) {
     this._webContents = webContents;

@@ -1,5 +1,3 @@
-// @flow
-
 import KeyframeAnimation from '../src/main/keyframe-animation';
 import { nativeImage } from 'electron';
 

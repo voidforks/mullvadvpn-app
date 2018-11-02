@@ -1,5 +1,3 @@
-// @flow
-
 import fs from 'fs';
 import log from 'electron-log';
 import path from 'path';
@@ -13,15 +11,14 @@ import WindowController from './window-controller';
 import ShutdownCoordinator from './shutdown-coordinator';
 import { resolveBin } from './proc';
 
-import type { TrayIconType } from './tray-icon-controller';
+import { TrayIconType } from './tray-icon-controller';
 
 const ApplicationMain = {
-  _windowController: (null: ?WindowController),
-  _trayIconController: (null: ?TrayIconController),
+  _windowController: <WindowController | null>null,
+  _trayIconController: <TrayIconController | null>null,
 
   _logFilePath: '',
-  _oldLogFilePath: (null: ?string),
-  _connectionFilePollInterval: (null: ?IntervalID),
+  _oldLogFilePath: <string | null>null,
   _shouldQuit: false,
 
   run() {
@@ -379,7 +376,7 @@ const ApplicationMain = {
     // add inspect element on right click menu
     window.webContents.on(
       'context-menu',
-      (_e: Event, props: { x: number, y: number, isEditable: boolean }) => {
+      (_e: Event, props: { x: number; y: number; isEditable: boolean }) => {
         const inspectTemplate = [
           {
             label: 'Inspect element',

@@ -1,15 +1,12 @@
-// @flow
-
-import { nativeImage } from 'electron';
-import type { NativeImage } from 'electron';
+import { nativeImage, NativeImage } from 'electron';
 
 export type OnFrameFn = (image: NativeImage) => void;
-export type OnFinishFn = (void) => void;
+export type OnFinishFn = () => void;
 export type KeyframeAnimationOptions = {
-  startFrame?: number,
-  endFrame?: number,
-  beginFromCurrentState?: boolean,
-  advanceTo?: 'end',
+  startFrame?: number;
+  endFrame?: number;
+  beginFromCurrentState?: boolean;
+  advanceTo?: 'end';
 };
 export type KeyframeAnimationRange = [number, number];
 
@@ -19,8 +16,8 @@ export default class KeyframeAnimation {
   _reverse: boolean = false;
   _alternate: boolean = false;
 
-  _onFrame: ?OnFrameFn;
-  _onFinish: ?OnFinishFn;
+  _onFrame: OnFrameFn | null;
+  _onFinish: OnFinishFn | null;
 
   _nativeImages: Array<NativeImage>;
   _frameRange: KeyframeAnimationRange;
@@ -33,18 +30,18 @@ export default class KeyframeAnimation {
 
   _timeout = null;
 
-  set onFrame(newValue: ?OnFrameFn) {
+  set onFrame(newValue: OnFrameFn | null) {
     this._onFrame = newValue;
   }
-  get onFrame(): ?OnFrameFn {
+  get onFrame(): OnFrameFn | null {
     return this._onFrame;
   }
 
   // called when animation finished for non-repeating animations.
-  set onFinish(newValue: ?OnFinishFn) {
+  set onFinish(newValue: OnFinishFn | null) {
     this._onFinish = newValue;
   }
-  get onFinish(): ?OnFinishFn {
+  get onFinish(): OnFinishFn | null {
     return this._onFinish;
   }
 

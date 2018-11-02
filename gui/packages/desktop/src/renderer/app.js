@@ -29,7 +29,6 @@ import userInterfaceActions from './redux/userinterface/actions';
 import SettingsProxy from './lib/subscription-proxy/settings-proxy';
 import TunnelStateProxy from './lib/subscription-proxy/tunnel-state-proxy';
 
-import type { WindowShapeParameters } from '../main/window-controller';
 import type {
   AccountToken,
   Settings,
@@ -42,7 +41,9 @@ import type {
   AccountData,
 } from './lib/daemon-rpc';
 import type { ReduxStore } from './redux/store';
-import type { TrayIconType } from '../main/tray-icon-controller';
+
+// TODO: Replace with the type from `../main/tray-icon-controller` after migration to TypeScript.
+type TrayIconType = 'unsecured' | 'securing' | 'secured';
 
 const RELAY_LIST_UPDATE_INTERVAL = 60 * 60 * 1000;
 
@@ -118,7 +119,7 @@ export default class AppRenderer {
       }
     });
 
-    ipcRenderer.on('update-window-shape', (_event, shapeParams: WindowShapeParameters) => {
+    ipcRenderer.on('update-window-shape', (_event, shapeParams) => {
       if (typeof shapeParams.arrowPosition === 'number') {
         this._reduxActions.userInterface.updateWindowArrowPosition(shapeParams.arrowPosition);
       }

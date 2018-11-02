@@ -1,13 +1,15 @@
-// @flow
-
-import path from 'path';
+import * as path from 'path';
 import KeyframeAnimation from './keyframe-animation';
-import type { Tray } from 'electron';
+import { Tray } from 'electron';
 
-export type TrayIconType = 'unsecured' | 'securing' | 'secured';
+export enum TrayIconType {
+  unsecured = 'unsecured',
+  securing = 'securing',
+  secured = 'secured',
+}
 
 export default class TrayIconController {
-  _animation: ?KeyframeAnimation;
+  _animation: KeyframeAnimation | null;
   _iconType: TrayIconType;
 
   constructor(tray: Tray, initialType: TrayIconType) {

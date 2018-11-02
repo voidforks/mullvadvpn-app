@@ -1,13 +1,14 @@
-// @flow
-
 import { screen } from 'electron';
-import type { BrowserWindow, Tray, Display } from 'electron';
+import { BrowserWindow, Tray, Display } from 'electron';
 
-type Position = { x: number, y: number };
+interface Position {
+  x: number;
+  y: number;
+}
 
-export type WindowShapeParameters = {
-  arrowPosition?: number,
-};
+export interface WindowShapeParameters {
+  arrowPosition?: number;
+}
 
 interface WindowPositioning {
   getPosition(window: BrowserWindow): Position;
