@@ -1,8 +1,7 @@
 use super::{NetNode, RequiredRoutes, Route};
 
 use super::subprocess::{Exec, RunExpr};
-use std::collections::HashSet;
-use std::net::IpAddr;
+use std::{collections::HashSet, net::IpAddr};
 
 error_chain! {
     errors {
@@ -27,17 +26,17 @@ pub struct RouteManager {
 impl RouteManager {
     fn add_route(&mut self, route: Route) -> Result<()> {
         if route.prefix.prefix() == 0 {
-            if route.prefix.is_ipv4() {
+            return if route.prefix.is_ipv4() {
                 self.add_route(Route::new("0.0.0.0/1".parse().unwrap(), route.node.clone()))?;
                 self.add_route(Route::new(
                     "128.0.0.0/1".parse().unwrap(),
                     route.node.clone(),
-                ))?;
+                ))
             } else {
                 self.add_route(Route::new("::/1".parse().unwrap(), route.node.clone()))?;
-                self.add_route(Route::new("8000::/1".parse().unwrap(), route.node.clone()))?;
-            }
-        };
+                self.add_route(Route::new("8000::/1".parse().unwrap(), route.node.clone()))
+            };
+        }
 
         let mut cmd = Exec::cmd("route")
             .arg("-q")
@@ -50,7 +49,7 @@ impl RouteManager {
             NetNode::Device(device) => cmd.arg("-interface").arg(&device),
         };
 
-        cmd.to_expr()
+        cmd.into_expr()
             .run_expr()
             .chain_err(|| ErrorKind::FailedToAddRoute)?;
         self.set_routes.insert(route);

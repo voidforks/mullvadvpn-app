@@ -9,7 +9,7 @@ export enum HeaderBarStyle {
   success = 'success',
 }
 
-interface IHeaderBarProps {
+export interface IHeaderBarProps {
   barStyle: HeaderBarStyle;
   style?: Types.ViewStyleRuleSet;
 }
@@ -142,6 +142,7 @@ export class SettingsBarButton extends Component<ISettingsButtonProps> {
           width={24}
           source="icon-settings"
           tintColor={'rgba(255, 255, 255, 0.6)'}
+          tintHoverColor={'rgba(255, 255, 255, 0.8)'}
         />
       </Button>
     );

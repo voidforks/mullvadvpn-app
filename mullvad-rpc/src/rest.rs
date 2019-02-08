@@ -1,16 +1,13 @@
-use std::path::Path;
-
-use futures::sync::{mpsc, oneshot};
-use futures::{future, Future, Stream};
-
-use hyper;
-use hyper::client::Client;
-use hyper::{Request, StatusCode, Uri};
-use hyper_openssl::openssl::error::ErrorStack;
-
-use tokio_core::reactor::Handle;
-
 use crate::HttpsConnectorWithSni;
+use futures::{
+    future,
+    sync::{mpsc, oneshot},
+    Future, Stream,
+};
+use hyper::{client::Client, Request, StatusCode, Uri};
+use hyper_openssl::openssl::error::ErrorStack;
+use std::path::Path;
+use tokio_core::reactor::Handle;
 
 error_chain! {
     errors {
@@ -33,7 +30,10 @@ type RequestReceiver = mpsc::UnboundedReceiver<(Request, oneshot::Sender<Result<
 
 pub fn create_https_client<P: AsRef<Path>>(ca_path: P, handle: &Handle) -> Result<RequestSender> {
     let connector = HttpsConnectorWithSni::new(ca_path, handle)?;
-    let client = Client::configure().connector(connector).build(handle);
+    let client = Client::configure()
+        .keep_alive(false)
+        .connector(connector)
+        .build(handle);
 
     let (request_tx, request_rx) = mpsc::unbounded();
     handle.spawn(create_request_processing_future(request_rx, client));
@@ -43,7 +43,7 @@ pub fn create_https_client<P: AsRef<Path>>(ca_path: P, handle: &Handle) -> Resul
 fn create_request_processing_future<CC: hyper::client::Connect>(
     request_rx: RequestReceiver,
     client: Client<CC, hyper::Body>,
-) -> Box<Future<Item = (), Error = ()>> {
+) -> Box<dyn Future<Item = (), Error = ()>> {
     let f = request_rx.for_each(move |(request, response_tx)| {
         log::trace!("Sending request to {}", request.uri());
         client
@@ -65,7 +65,7 @@ fn create_request_processing_future<CC: hyper::client::Connect>(
                 Ok(())
             })
     });
-    Box::new(f) as Box<Future<Item = (), Error = ()>>
+    Box::new(f) as Box<dyn Future<Item = (), Error = ()>>
 }
 
 pub fn create_get_request(uri: Uri) -> Request {

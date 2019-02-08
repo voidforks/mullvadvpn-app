@@ -6,31 +6,36 @@
 //! GNU General Public License as published by the Free Software Foundation, either version 3 of
 //! the License, or (at your option) any later version.
 
-extern crate winapi;
-
-use self::winapi::shared::basetsd::LONG_PTR;
-use self::winapi::shared::minwindef::{DWORD, LPARAM, LRESULT, UINT, WPARAM};
-use self::winapi::shared::windef::HWND;
-use self::winapi::um::handleapi::CloseHandle;
-use self::winapi::um::libloaderapi::GetModuleHandleW;
-use self::winapi::um::processthreadsapi::GetThreadId;
-use self::winapi::um::synchapi::WaitForSingleObject;
-use self::winapi::um::winbase::INFINITE;
-use self::winapi::um::winuser::{
-    CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetMessageW,
-    GetWindowLongPtrW, PostQuitMessage, PostThreadMessageW, SetWindowLongPtrW, GWLP_USERDATA,
-    GWLP_WNDPROC, PBT_APMRESUMEAUTOMATIC, PBT_APMSUSPEND, WM_DESTROY, WM_POWERBROADCAST, WM_USER,
-};
+use crate::tunnel_state_machine::TunnelCommand;
 use futures::sync::mpsc::UnboundedSender;
 use log::debug;
-use std::ffi::c_void;
-use std::mem::zeroed;
-use std::os::windows::io::IntoRawHandle;
-use std::os::windows::io::RawHandle;
-use std::ptr;
-use std::thread;
-use std::time::Duration;
-use tunnel_state_machine::TunnelCommand;
+use std::{
+    ffi::c_void,
+    mem::zeroed,
+    os::windows::io::{IntoRawHandle, RawHandle},
+    ptr, thread,
+    time::Duration,
+};
+use winapi::{
+    shared::{
+        basetsd::LONG_PTR,
+        minwindef::{DWORD, LPARAM, LRESULT, UINT, WPARAM},
+        windef::HWND,
+    },
+    um::{
+        handleapi::CloseHandle,
+        libloaderapi::GetModuleHandleW,
+        processthreadsapi::GetThreadId,
+        synchapi::WaitForSingleObject,
+        winbase::INFINITE,
+        winuser::{
+            CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetMessageW,
+            GetWindowLongPtrW, PostQuitMessage, PostThreadMessageW, SetWindowLongPtrW,
+            GWLP_USERDATA, GWLP_WNDPROC, PBT_APMRESUMEAUTOMATIC, PBT_APMSUSPEND, WM_DESTROY,
+            WM_POWERBROADCAST, WM_USER,
+        },
+    },
+};
 
 const CLASS_NAME: &[u8] = b"S\0T\0A\0T\0I\0C\0\0\0";
 const REQUEST_THREAD_SHUTDOWN: UINT = WM_USER + 1;

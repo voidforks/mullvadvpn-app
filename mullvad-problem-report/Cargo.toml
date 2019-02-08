@@ -1,6 +1,6 @@
 [package]
 name = "mullvad-problem-report"
-version = "2018.5.0"
+version = "2019.1.0"
 authors = [
     "Mullvad VPN <admin@mullvad.net>",
     "Andrej Mihajlov <and@mullvad.net>",
@@ -11,6 +11,7 @@ authors = [
 ]
 description = "Collect Mullvad VPN logs into a report and send it to support"
 license = "GPL-3.0"
+edition = "2018"
 
 [[bin]]
 name = "problem-report"

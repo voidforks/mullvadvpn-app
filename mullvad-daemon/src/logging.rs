@@ -1,14 +1,10 @@
-extern crate fern;
-
-use self::fern::colors::{Color, ColoredLevelConfig};
-use self::fern::Output;
 use chrono;
+use fern::{
+    colors::{Color, ColoredLevelConfig},
+    Output,
+};
 use log;
-
-use std::fmt;
-use std::io;
-use std::path::PathBuf;
-
+use std::{fmt, io, path::PathBuf};
 use talpid_core::logging::rotate_log;
 
 error_chain! {
@@ -41,6 +37,8 @@ const SILENCED_CRATES: &[&str] = &[
     "ws",
     "mio",
     "hyper",
+    "rtnetlink",
+    "iproute2",
 ];
 const SLIGHTLY_SILENCED_CRATES: &[&str] = &["mnl", "nftnl"];
 

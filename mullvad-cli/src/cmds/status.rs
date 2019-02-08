@@ -1,10 +1,7 @@
 use crate::{new_rpc_client, Command, Result};
-use clap;
-
 use mullvad_ipc_client::DaemonRpcClient;
 use mullvad_types::auth_failed::AuthFailed;
-use talpid_types::tunnel::BlockReason;
-use talpid_types::tunnel::TunnelStateTransition::{self, *};
+use talpid_types::tunnel::{BlockReason, TunnelStateTransition};
 
 pub struct Status;
 
@@ -31,6 +28,7 @@ impl Command for Status {
             for new_state in rpc.new_state_subscribe()? {
                 print_state(&new_state);
 
+                use self::TunnelStateTransition::*;
                 match new_state {
                     Connected(_) | Disconnected => print_location(&mut rpc)?,
                     _ => {}
@@ -42,6 +40,7 @@ impl Command for Status {
 }
 
 fn print_state(state: &TunnelStateTransition) {
+    use self::TunnelStateTransition::*;
     print!("Tunnel status: ");
     match state {
         Blocked(reason) => print_blocked_reason(reason),
@@ -66,7 +65,13 @@ fn print_blocked_reason(reason: &BlockReason) {
 }
 
 fn print_location(rpc: &mut DaemonRpcClient) -> Result<()> {
-    let location = rpc.get_current_location()?;
+    let location = match rpc.get_current_location()? {
+        Some(loc) => loc,
+        None => {
+            println!("Location data unavailable");
+            return Ok(());
+        }
+    };
     let city_and_country = if let Some(city) = location.city {
         format!("{}, {}", city, location.country)
     } else {

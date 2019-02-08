@@ -4,14 +4,15 @@ version = "0.1.0"
 authors = ["Mullvad VPN <admin@mullvad.net>"]
 description = "Privacy preserving and secure VPN client library"
 license = "GPL-3.0"
+edition = "2018"
 
 [dependencies]
 atty = "0.2"
 duct = "0.11"
 error-chain = "0.12"
 futures = "0.1"
-jsonrpc-core = { git = "https://github.com/mullvad/jsonrpc", branch = "make-ipc-server-concurrent-part-deux" }
-jsonrpc-macros = { git = "https://github.com/mullvad/jsonrpc", branch = "make-ipc-server-concurrent-part-deux" }
+jsonrpc-core = { git = "https://github.com/mullvad/jsonrpc", branch = "mullvad-fork" }
+jsonrpc-macros = { git = "https://github.com/mullvad/jsonrpc", branch = "mullvad-fork" }
 
 libc = "0.2.20"
 log = "0.4"
@@ -25,20 +26,28 @@ talpid-ipc = { path = "../talpid-ipc" }
 talpid-types = { path = "../talpid-types" }
 
 [target.'cfg(unix)'.dependencies]
-ipnetwork = "0.13"
+hex = "0.3"
+ipnetwork = "0.14"
 lazy_static = "1.0"
+tun = { git = "https://github.com/pinkisemils/rust-tun", branch = "add-raw-fd-traits" }
+nix = "0.12"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 dbus = "0.6"
 failure = "0.1"
+iproute2 = { git = "https://github.com/mullvad/netlink", branch = "best-effort-nla-parsing" }
+netlink-socket = { git = "https://github.com/mullvad/netlink", branch = "best-effort-nla-parsing" }
 notify = "4.0"
 resolv-conf = "0.6.1"
-nftnl = { version = "0.1", features = ["nftnl-1-1-0"] }
-mnl = { version = "0.1", features = ["mnl-1-0-4"] }
+rtnetlink = { git = "https://github.com/mullvad/netlink", branch = "best-effort-nla-parsing" }
+nftnl = { git = "https://github.com/mullvad/nftnl-rs", rev = "f0b1492fd2fd1f737dbffd047c9c60c300e6f7d6", features = ["nftnl-1-1-0"] }
+mnl = { git = "https://github.com/mullvad/mnl-rs", rev = "f0d19501b9b85be9a1ffaec8317a378bcbdf4fa6", features = ["mnl-1-0-4"] }
 which = "2.0"
+err-derive = "0.1.5"
 
 [target.'cfg(target_os = "macos")'.dependencies]
-pfctl = "0.2"
+# TODO: Specify 0.2.1 once the crate gets published
+pfctl = { git = "https://github.com/mullvad/pfctl-rs", rev = "9f31b5ddcab941862470075eab83bb398195f3d6" }
 system-configuration = "0.2"
 
 [target.'cfg(windows)'.dependencies]

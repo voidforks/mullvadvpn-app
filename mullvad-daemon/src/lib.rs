@@ -6,34 +6,11 @@
 //! GNU General Public License as published by the Free Software Foundation, either version 3 of
 //! the License, or (at your option) any later version.
 
-extern crate chrono;
 #[macro_use]
 extern crate error_chain;
-extern crate futures;
-#[cfg(unix)]
-extern crate libc;
-extern crate log;
-
 #[macro_use]
 extern crate serde;
-extern crate serde_json;
 
-extern crate jsonrpc_core;
-extern crate jsonrpc_ipc_server;
-extern crate jsonrpc_macros;
-extern crate jsonrpc_pubsub;
-extern crate rand;
-extern crate tokio_core;
-extern crate tokio_timer;
-extern crate uuid;
-
-extern crate mullvad_ipc_client;
-extern crate mullvad_paths;
-extern crate mullvad_rpc;
-extern crate mullvad_types;
-extern crate talpid_core;
-extern crate talpid_ipc;
-extern crate talpid_types;
 
 mod account_history;
 mod geoip;
@@ -52,24 +29,24 @@ use log::{debug, error, info, warn};
 use mullvad_rpc::{AccountsProxy, AppVersionProxy, HttpHandle};
 use mullvad_types::{
     account::{AccountData, AccountToken},
+    endpoint::MullvadEndpoint,
     location::GeoIpLocation,
     relay_constraints::{
         Constraint, OpenVpnConstraints, RelayConstraintsUpdate, RelaySettings, RelaySettingsUpdate,
         TunnelConstraints,
     },
     relay_list::{Relay, RelayList},
-    settings,
-    settings::Settings,
+    settings::{self, Settings},
     states::TargetState,
     version::{AppVersion, AppVersionInfo},
 };
 use std::{mem, path::PathBuf, sync::mpsc, thread, time::Duration};
 use talpid_core::{
     mpsc::IntoSender,
-    tunnel_state_machine::{self, TunnelCommand, TunnelParameters, TunnelParametersGenerator},
+    tunnel_state_machine::{self, TunnelCommand, TunnelParametersGenerator},
 };
 use talpid_types::{
-    net::{OpenVpnProxySettings, TransportProtocol},
+    net::{openvpn, TransportProtocol, TunnelParameters},
     tunnel::{BlockReason, TunnelStateTransition},
 };
 
@@ -81,6 +58,9 @@ error_chain! {
         }
         DaemonIsAlreadyRunning {
             description("Another instance of the daemon is already running")
+        }
+        UnsupportedTunnel {
+            description("Unsupported tunnel")
         }
         ManagementInterfaceError(msg: &'static str) {
             description("Error in the management interface")
@@ -363,30 +343,49 @@ impl Daemon {
             .ok_or_else(|| Error::from("No account token configured"))
             .map(|account_token| {
                 match self.settings.get_relay_settings() {
-                    RelaySettings::CustomTunnelEndpoint(custom_relay) => custom_relay
-                        .to_tunnel_endpoint()
-                        .chain_err(|| "Custom tunnel endpoint could not be resolved"),
+                    RelaySettings::CustomTunnelEndpoint(custom_relay) => {
+                        self.last_generated_relay = None;
+                        custom_relay
+                            .to_tunnel_parameters(self.settings.get_tunnel_options().clone())
+                            .chain_err(|| "Custom tunnel endpoint could not be resolved")
+                    }
                     RelaySettings::Normal(constraints) => self
                         .relay_selector
                         .get_tunnel_endpoint(&constraints, retry_attempt)
                         .chain_err(|| "No valid relay servers match the current settings")
-                        .map(|(relay, endpoint)| {
+                        .and_then(|(relay, endpoint)| {
                             self.last_generated_relay = Some(relay);
-                            endpoint
+                            self.create_tunnel_parameters(endpoint, account_token)
                         }),
                 }
-                .map(|endpoint| {
+                .map(|tunnel_params| {
                     tunnel_parameters_tx
-                        .send(TunnelParameters {
-                            endpoint,
-                            options: self.settings.get_tunnel_options().clone(),
-                            username: account_token,
-                        })
+                        .send(tunnel_params)
                         .map_err(|_| Error::from("Tunnel parameters receiver stopped listening"))
                 })
             });
         if let Err(error) = result {
             error!("{}", error.display_chain());
+        }
+    }
+
+    fn create_tunnel_parameters(
+        &self,
+        endpoint: MullvadEndpoint,
+        account_token: String,
+    ) -> Result<TunnelParameters> {
+        let tunnel_options = self.settings.get_tunnel_options().clone();
+        match endpoint {
+            MullvadEndpoint::OpenVpn(endpoint) => Ok(openvpn::TunnelParameters {
+                config: openvpn::ConnectionConfig::new(endpoint, account_token, "-".to_string()),
+                options: tunnel_options.openvpn,
+                generic_options: tunnel_options.generic,
+            }
+            .into()),
+            MullvadEndpoint::Wireguard {
+                peer: _,
+                gateway: _,
+            } => Err(ErrorKind::UnsupportedTunnel.into()),
         }
     }
 
@@ -433,6 +432,9 @@ impl Daemon {
             SetOpenVpnMssfix(tx, mssfix_arg) => self.on_set_openvpn_mssfix(tx, mssfix_arg),
             SetOpenVpnProxy(tx, proxy) => self.on_set_openvpn_proxy(tx, proxy),
             SetEnableIpv6(tx, enable_ipv6) => self.on_set_enable_ipv6(tx, enable_ipv6),
+            #[cfg(target_os = "linux")]
+            SetWireguardFwmark(tx, fwmark) => self.on_set_wireguard_fwmark(tx, fwmark),
+            SetWireguardMtu(tx, mtu) => self.on_set_wireguard_mtu(tx, mtu),
             GetSettings(tx) => self.on_get_settings(tx),
             GetVersionInfo(tx) => self.on_get_version_info(tx),
             GetCurrentVersion(tx) => self.on_get_current_version(tx),
@@ -457,28 +459,31 @@ impl Daemon {
         Self::oneshot_send(tx, self.tunnel_state.clone(), "current state");
     }
 
-    fn on_get_current_location(&self, tx: oneshot::Sender<GeoIpLocation>) {
+    fn on_get_current_location(&self, tx: oneshot::Sender<Option<GeoIpLocation>>) {
         use self::TunnelStateTransition::*;
-        let get_location: Box<dyn Future<Item = GeoIpLocation, Error = ()> + Send> =
+        let get_location: Box<dyn Future<Item = Option<GeoIpLocation>, Error = ()> + Send> =
             match self.tunnel_state {
-                Disconnected => Box::new(self.get_geo_location()),
-                Connecting(_) | Disconnecting(..) => {
-                    Box::new(future::result(Ok(self.build_location_from_relay())))
-                }
-                Connected(_) => {
-                    let location_from_relay = self.build_location_from_relay();
-                    Box::new(
+                Disconnected => Box::new(self.get_geo_location().map(Some)),
+                Connecting(_) | Disconnecting(..) => match self.build_location_from_relay() {
+                    Some(relay_location) => Box::new(future::result(Ok(Some(relay_location)))),
+                    // Custom relay is set, no location is known
+                    None => Box::new(future::result(Ok(None))),
+                },
+                Connected(_) => match self.build_location_from_relay() {
+                    Some(location_from_relay) => Box::new(
                         self.get_geo_location()
                             .map(|fetched_location| GeoIpLocation {
                                 ip: fetched_location.ip,
                                 ..location_from_relay
-                            }),
-                    )
-                }
+                            })
+                            .map(Some),
+                    ),
+                    // Custom relay is set, no location is known intrinsicly
+                    None => Box::new(self.get_geo_location().map(Some)),
+                },
                 Blocked(..) => {
-                    // We are not online at all at this stage. Return error.
-                    mem::drop(tx);
-                    return;
+                    // We are not online at all at this stage so no location data is available.
+                    Box::new(future::result(Ok(None)))
                 }
             };
 
@@ -495,15 +500,12 @@ impl Daemon {
         })
     }
 
-    fn build_location_from_relay(&self) -> GeoIpLocation {
-        let relay = self
-            .last_generated_relay
-            .as_ref()
-            .expect("Can't build location from relay in disconnected state");
+    fn build_location_from_relay(&self) -> Option<GeoIpLocation> {
+        let relay = self.last_generated_relay.as_ref()?;
         let location = relay.location.as_ref().cloned().unwrap();
         let hostname = relay.hostname.clone();
 
-        GeoIpLocation {
+        Some(GeoIpLocation {
             ip: None,
             country: location.country,
             city: Some(location.city),
@@ -511,7 +513,7 @@ impl Daemon {
             longitude: location.longitude,
             mullvad_exit_ip: true,
             hostname: Some(hostname),
-        }
+        })
     }
 
     fn on_get_account_data(
@@ -663,7 +665,7 @@ impl Daemon {
     fn on_set_openvpn_proxy(
         &mut self,
         tx: oneshot::Sender<::std::result::Result<(), settings::Error>>,
-        proxy: Option<OpenVpnProxySettings>,
+        proxy: Option<openvpn::ProxySettings>,
     ) {
         let constraints_result = match proxy {
             Some(_) => self.apply_proxy_constraints(),
@@ -720,6 +722,39 @@ impl Daemon {
                     self.management_interface_broadcaster
                         .notify_settings(&self.settings);
                     info!("Initiating tunnel restart because the enable IPv6 setting changed");
+                    self.reconnect_tunnel();
+                }
+            }
+            Err(e) => error!("{}", e.display_chain()),
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    fn on_set_wireguard_fwmark(&mut self, tx: oneshot::Sender<()>, fwmark: i32) {
+        let save_result = self.settings.set_wireguard_fwmark(fwmark);
+        match save_result.chain_err(|| "Unable to save settings") {
+            Ok(settings_changed) => {
+                Self::oneshot_send(tx, (), "set_wireguard_fwmark response");
+                if settings_changed {
+                    self.management_interface_broadcaster
+                        .notify_settings(&self.settings);
+                    info!("Initiating tunnel restart because the WireGuard fwmark setting changed");
+                    self.reconnect_tunnel();
+                }
+            }
+            Err(e) => error!("{}", e.display_chain()),
+        }
+    }
+
+    fn on_set_wireguard_mtu(&mut self, tx: oneshot::Sender<()>, mtu: Option<u16>) {
+        let save_result = self.settings.set_wireguard_mtu(mtu);
+        match save_result.chain_err(|| "Unable to save settings") {
+            Ok(settings_changed) => {
+                Self::oneshot_send(tx, (), "set_wireguard_mtu response");
+                if settings_changed {
+                    self.management_interface_broadcaster
+                        .notify_settings(&self.settings);
+                    info!("Initiating tunnel restart because the WireGuard MTU setting changed");
                     self.reconnect_tunnel();
                 }
             }

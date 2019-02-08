@@ -10,39 +10,20 @@
 //! GNU General Public License as published by the Free Software Foundation, either version 3 of
 //! the License, or (at your option) any later version.
 
-extern crate atty;
-extern crate duct;
-extern crate log;
-
 #[macro_use]
 extern crate error_chain;
-#[cfg(target_os = "linux")]
-extern crate failure;
-extern crate futures;
-#[cfg(unix)]
-extern crate ipnetwork;
-extern crate jsonrpc_core;
-extern crate jsonrpc_macros;
-#[cfg(unix)]
-extern crate lazy_static;
-extern crate libc;
-extern crate shell_escape;
-extern crate tokio_core;
-extern crate uuid;
-#[cfg(target_os = "linux")]
-extern crate which;
-#[cfg(windows)]
-extern crate widestring;
-#[cfg(windows)]
-extern crate winreg;
 
-extern crate openvpn_plugin;
-extern crate talpid_ipc;
-extern crate talpid_types;
+/// Misc FFI utilities.
+#[cfg(windows)]
+#[macro_use]
+mod ffi;
 
 #[cfg(windows)]
 mod winnet;
 
+#[cfg(unix)]
+/// Working with IP interface devices
+pub mod network_interface;
 #[cfg(unix)]
 /// Abstraction over operating system routing table.
 pub mod routing;
@@ -61,10 +42,17 @@ pub mod logging;
 /// Abstractions and extra features on `std::mpsc`
 pub mod mpsc;
 
-/// Abstractions over operating system network security settings.
-pub mod security;
+/// Abstractions over operating system firewalls.
+pub mod firewall;
+
+/// Abstractions over operating system DNS settings.
+pub mod dns;
 
 /// State machine to handle tunnel configuration.
 pub mod tunnel_state_machine;
 
 mod mktemp;
+
+/// Misc utilities for the Linux platform.
+#[cfg(target_os = "linux")]
+mod linux;

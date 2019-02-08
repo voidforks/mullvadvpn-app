@@ -1,6 +1,6 @@
 [package]
 name = "mullvad-cli"
-version = "2018.5.0"
+version = "2019.1.0"
 authors = [
     "Mullvad VPN <admin@mullvad.net>",
     "Andrej Mihajlov <and@mullvad.net>",
@@ -11,17 +11,19 @@ authors = [
 ]
 description = "Manage the Mullvad VPN daemon via a convenient CLI"
 license = "GPL-3.0"
+edition = "2018"
 
 [[bin]]
 name = "mullvad"
 path = "src/main.rs"
 
 [dependencies]
-clap = "2.20"
+clap = "2.32"
 error-chain = "0.12"
 env_logger = "0.5"
 serde = "1.0"
 futures = "0.1"
+base64 = "0.10"
 
 mullvad-ipc-client = { path = "../mullvad-ipc-client" }
 mullvad-types = { path = "../mullvad-types" }

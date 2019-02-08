@@ -1,25 +1,29 @@
-use std::ffi::OsString;
-use std::path::{Path, PathBuf};
-use std::thread;
-use std::time::{Duration, Instant};
+use std::{
+    ffi::OsString,
+    path::{Path, PathBuf},
+    thread,
+    time::{Duration, Instant},
+};
 
 use error_chain::ChainedError;
-use futures::sync::{mpsc, oneshot};
-use futures::{Async, Future, Stream};
-use log::{debug, error, info, trace, warn};
-use talpid_types::net::{
-    Endpoint, OpenVpnProxySettings, TransportProtocol, TunnelEndpoint, TunnelEndpointData,
+use futures::{
+    sync::{mpsc, oneshot},
+    Async, Future, Stream,
 };
-use talpid_types::tunnel::BlockReason;
+use log::{debug, error, info, trace, warn};
+use talpid_types::{
+    net::{openvpn, Endpoint, TunnelParameters},
+    tunnel::BlockReason,
+};
 
 use super::{
     AfterDisconnect, BlockedState, ConnectedState, ConnectedStateBootstrap, DisconnectingState,
-    EventConsequence, SharedTunnelStateValues, TunnelCommand, TunnelParameters, TunnelState,
-    TunnelStateTransition, TunnelStateWrapper,
+    EventConsequence, SharedTunnelStateValues, TunnelCommand, TunnelState, TunnelStateTransition,
+    TunnelStateWrapper,
 };
 use crate::{
+    firewall::FirewallPolicy,
     logging,
-    security::SecurityPolicy,
     tunnel::{self, CloseHandle, TunnelEvent, TunnelMetadata, TunnelMonitor},
 };
 
@@ -50,38 +54,31 @@ error_chain! {
 pub struct ConnectingState {
     tunnel_events: mpsc::UnboundedReceiver<TunnelEvent>,
     tunnel_parameters: TunnelParameters,
-    tunnel_close_event: oneshot::Receiver<()>,
+    tunnel_close_event: oneshot::Receiver<Option<BlockReason>>,
     close_handle: CloseHandle,
     retry_attempt: u32,
 }
 
 impl ConnectingState {
-    fn set_security_policy(
+    fn set_firewall_policy(
         shared_values: &mut SharedTunnelStateValues,
-        proxy: &Option<OpenVpnProxySettings>,
-        endpoint: TunnelEndpoint,
+        proxy: &Option<openvpn::ProxySettings>,
+        endpoint: Endpoint,
     ) -> Result<()> {
         // If a proxy is specified we need to pass it on as the peer endpoint.
         let peer_endpoint = match proxy {
-            Some(OpenVpnProxySettings::Local(ref local_proxy)) => Endpoint {
-                address: local_proxy.peer,
-                protocol: TransportProtocol::Tcp,
-            },
-            Some(OpenVpnProxySettings::Remote(ref remote_proxy)) => Endpoint {
-                address: remote_proxy.address,
-                protocol: TransportProtocol::Tcp,
-            },
-            _ => endpoint.to_endpoint(),
+            Some(proxy_settings) => proxy_settings.get_endpoint(),
+            None => endpoint,
         };
 
-        let policy = SecurityPolicy::Connecting {
+        let policy = FirewallPolicy::Connecting {
             peer_endpoint,
             allow_lan: shared_values.allow_lan,
         };
         shared_values
-            .security
+            .firewall
             .apply_policy(policy)
-            .chain_err(|| "Failed to apply security policy for connecting state")
+            .chain_err(|| "Failed to apply firewall policy for connecting state")
     }
 
     fn start_tunnel(
@@ -116,11 +113,9 @@ impl ConnectingState {
         let log_file = Self::prepare_tunnel_log_file(&parameters, log_dir)?;
 
         Ok(TunnelMonitor::start(
-            parameters.endpoint,
-            &parameters.options,
+            &parameters,
             TUNNEL_INTERFACE_ALIAS.to_owned().map(OsString::from),
-            &parameters.username,
-            log_file.as_ref().map(PathBuf::as_path),
+            log_file.clone(),
             resource_dir,
             on_tunnel_event,
         )?)
@@ -131,9 +126,9 @@ impl ConnectingState {
         log_dir: &Option<PathBuf>,
     ) -> Result<Option<PathBuf>> {
         if let Some(ref log_dir) = log_dir {
-            let filename = match parameters.endpoint.tunnel {
-                TunnelEndpointData::OpenVpn(_) => OPENVPN_LOG_FILENAME,
-                TunnelEndpointData::Wireguard(_) => WIREGUARD_LOG_FILENAME,
+            let filename = match parameters {
+                TunnelParameters::OpenVpn(_) => OPENVPN_LOG_FILENAME,
+                TunnelParameters::Wireguard(_) => WIREGUARD_LOG_FILENAME,
             };
             let tunnel_log = log_dir.join(filename);
             logging::rotate_log(&tunnel_log).chain_err(|| ErrorKind::RotateLogError)?;
@@ -143,25 +138,23 @@ impl ConnectingState {
         }
     }
 
-    fn spawn_tunnel_monitor_wait_thread(tunnel_monitor: TunnelMonitor) -> oneshot::Receiver<()> {
+    fn spawn_tunnel_monitor_wait_thread(
+        tunnel_monitor: TunnelMonitor,
+    ) -> oneshot::Receiver<Option<BlockReason>> {
         let (tunnel_close_event_tx, tunnel_close_event_rx) = oneshot::channel();
 
         thread::spawn(move || {
             let start = Instant::now();
 
-            match tunnel_monitor.wait() {
-                Ok(_) => debug!("Tunnel has finished without errors"),
-                Err(error) => {
-                    let chained_error = error.chain_err(|| "Tunnel has stopped unexpectedly");
-                    warn!("{}", chained_error.display_chain());
+            let block_reason = Self::wait_for_tunnel_monitor(tunnel_monitor);
+
+            if block_reason.is_none() {
+                if let Some(remaining_time) = MIN_TUNNEL_ALIVE_TIME.checked_sub(start.elapsed()) {
+                    thread::sleep(remaining_time);
                 }
             }
 
-            if let Some(remaining_time) = MIN_TUNNEL_ALIVE_TIME.checked_sub(start.elapsed()) {
-                thread::sleep(remaining_time);
-            }
-
-            if tunnel_close_event_tx.send(()).is_err() {
+            if tunnel_close_event_tx.send(block_reason).is_err() {
                 warn!("Tunnel state machine stopped before receiving tunnel closed event");
             }
 
@@ -169,6 +162,39 @@ impl ConnectingState {
         });
 
         tunnel_close_event_rx
+    }
+
+    fn wait_for_tunnel_monitor(tunnel_monitor: TunnelMonitor) -> Option<BlockReason> {
+        match tunnel_monitor.wait() {
+            Ok(_) => {
+                debug!("Tunnel has finished without errors");
+                None
+            }
+            Err(error) => match error {
+                #[cfg(windows)]
+                error @ tunnel::Error(
+                    tunnel::ErrorKind::OpenVpnTunnelMonitoringError(
+                        tunnel::openvpn::ErrorKind::DisabledTapAdapter,
+                    ),
+                    _,
+                )
+                | error @ tunnel::Error(
+                    tunnel::ErrorKind::OpenVpnTunnelMonitoringError(
+                        tunnel::openvpn::ErrorKind::MissingTapAdapter,
+                    ),
+                    _,
+                ) => {
+                    let chained_error = error.chain_err(|| "TAP adapter problem detected");
+                    warn!("{}", chained_error.display_chain());
+                    Some(BlockReason::TapAdapterProblem)
+                }
+                error => {
+                    let chained_error = error.chain_err(|| "Tunnel has stopped unexpectedly");
+                    warn!("{}", chained_error.display_chain());
+                    None
+                }
+            },
+        }
     }
 
     fn into_connected_state_bootstrap(self, metadata: TunnelMetadata) -> ConnectedStateBootstrap {
@@ -191,10 +217,10 @@ impl ConnectingState {
         match try_handle_event!(self, commands.poll()) {
             Ok(TunnelCommand::AllowLan(allow_lan)) => {
                 shared_values.allow_lan = allow_lan;
-                match Self::set_security_policy(
+                match Self::set_firewall_policy(
                     shared_values,
-                    &self.tunnel_parameters.options.openvpn.proxy,
-                    self.tunnel_parameters.endpoint,
+                    &get_openvpn_proxy_settings(&self.tunnel_parameters),
+                    self.tunnel_parameters.get_tunnel_endpoint().endpoint,
                 ) {
                     Ok(()) => SameState(self),
                     Err(error) => {
@@ -205,7 +231,7 @@ impl ConnectingState {
                             (
                                 self.close_handle,
                                 self.tunnel_close_event,
-                                AfterDisconnect::Block(BlockReason::SetSecurityPolicyError),
+                                AfterDisconnect::Block(BlockReason::SetFirewallPolicyError),
                             ),
                         ))
                     }
@@ -257,6 +283,7 @@ impl ConnectingState {
         }
     }
 
+
     fn handle_tunnel_events(
         mut self,
         shared_values: &mut SharedTunnelStateValues,
@@ -296,7 +323,11 @@ impl ConnectingState {
         shared_values: &mut SharedTunnelStateValues,
     ) -> EventConsequence<Self> {
         match self.tunnel_close_event.poll() {
-            Ok(Async::Ready(_)) => {}
+            Ok(Async::Ready(block_reason)) => {
+                if let Some(reason) = block_reason {
+                    return EventConsequence::NewState(BlockedState::enter(shared_values, reason));
+                }
+            }
             Ok(Async::NotReady) => return EventConsequence::NoEvents(self),
             Err(_cancelled) => warn!("Tunnel monitor thread has stopped unexpectedly"),
         }
@@ -309,6 +340,15 @@ impl ConnectingState {
             shared_values,
             self.retry_attempt + 1,
         ))
+    }
+}
+
+fn get_openvpn_proxy_settings(
+    tunnel_parameters: &TunnelParameters,
+) -> &Option<openvpn::ProxySettings> {
+    match tunnel_parameters {
+        TunnelParameters::OpenVpn(ref config) => &config.options.proxy,
+        _ => &None,
     }
 }
 
@@ -328,11 +368,11 @@ impl TunnelState for ConnectingState {
         {
             None => BlockedState::enter(shared_values, BlockReason::NoMatchingRelay),
             Some(tunnel_parameters) => {
-                let tunnel_endpoint = tunnel_parameters.endpoint;
-                if let Err(error) = Self::set_security_policy(
+                let endpoint = tunnel_parameters.get_tunnel_endpoint().endpoint;
+                if let Err(error) = Self::set_firewall_policy(
                     shared_values,
-                    &tunnel_parameters.options.openvpn.proxy,
-                    tunnel_endpoint,
+                    &get_openvpn_proxy_settings(&tunnel_parameters),
+                    endpoint,
                 ) {
                     error!("{}", error.display_chain());
                     BlockedState::enter(shared_values, BlockReason::StartTunnelError)
@@ -343,10 +383,13 @@ impl TunnelState for ConnectingState {
                         &shared_values.resource_dir,
                         retry_attempt,
                     ) {
-                        Ok(connecting_state) => (
-                            TunnelStateWrapper::from(connecting_state),
-                            TunnelStateTransition::Connecting(tunnel_endpoint),
-                        ),
+                        Ok(connecting_state) => {
+                            let params = connecting_state.tunnel_parameters.clone();
+                            (
+                                TunnelStateWrapper::from(connecting_state),
+                                TunnelStateTransition::Connecting(params.get_tunnel_endpoint()),
+                            )
+                        }
                         Err(error) => {
                             let block_reason = match *error.kind() {
                                 ErrorKind::TunnelMonitorError(

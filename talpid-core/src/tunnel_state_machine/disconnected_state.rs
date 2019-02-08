@@ -2,29 +2,28 @@ use super::{
     BlockedState, ConnectingState, EventConsequence, ResultExt, SharedTunnelStateValues,
     TunnelCommand, TunnelState, TunnelStateTransition, TunnelStateWrapper,
 };
-use crate::security::SecurityPolicy;
+use crate::firewall::FirewallPolicy;
 use error_chain::ChainedError;
-use futures::sync::mpsc;
-use futures::Stream;
+use futures::{sync::mpsc, Stream};
 
 /// No tunnel is running.
 pub struct DisconnectedState;
 
 impl DisconnectedState {
-    fn set_security_policy(shared_values: &mut SharedTunnelStateValues) {
+    fn set_firewall_policy(shared_values: &mut SharedTunnelStateValues) {
         let result = if shared_values.block_when_disconnected {
-            let policy = SecurityPolicy::Blocked {
+            let policy = FirewallPolicy::Blocked {
                 allow_lan: shared_values.allow_lan,
             };
             shared_values
-                .security
+                .firewall
                 .apply_policy(policy)
-                .chain_err(|| "Failed to apply blocking security policy for disconnected state")
+                .chain_err(|| "Failed to apply blocking firewall policy for disconnected state")
         } else {
             shared_values
-                .security
+                .firewall
                 .reset_policy()
-                .chain_err(|| "Failed to reset security policy")
+                .chain_err(|| "Failed to reset firewall policy")
         };
         if let Err(error) = result {
             log::error!("{}", error.display_chain());
@@ -39,7 +38,7 @@ impl TunnelState for DisconnectedState {
         shared_values: &mut SharedTunnelStateValues,
         _: Self::Bootstrap,
     ) -> (TunnelStateWrapper, TunnelStateTransition) {
-        Self::set_security_policy(shared_values);
+        Self::set_firewall_policy(shared_values);
         (
             TunnelStateWrapper::from(DisconnectedState),
             TunnelStateTransition::Disconnected,
@@ -57,14 +56,14 @@ impl TunnelState for DisconnectedState {
             Ok(TunnelCommand::AllowLan(allow_lan)) => {
                 if shared_values.allow_lan != allow_lan {
                     shared_values.allow_lan = allow_lan;
-                    Self::set_security_policy(shared_values);
+                    Self::set_firewall_policy(shared_values);
                 }
                 SameState(self)
             }
             Ok(TunnelCommand::BlockWhenDisconnected(block_when_disconnected)) => {
                 if shared_values.block_when_disconnected != block_when_disconnected {
                     shared_values.block_when_disconnected = block_when_disconnected;
-                    Self::set_security_policy(shared_values);
+                    Self::set_firewall_policy(shared_values);
                 }
                 SameState(self)
             }

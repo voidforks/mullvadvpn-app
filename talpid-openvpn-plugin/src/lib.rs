@@ -6,23 +6,12 @@
 //! GNU General Public License as published by the Free Software Foundation, either version 3 of
 //! the License, or (at your option) any later version.
 
-extern crate env_logger;
 #[macro_use]
 extern crate error_chain;
-extern crate log;
-
-extern crate futures;
-extern crate jsonrpc_client_core;
-extern crate jsonrpc_client_ipc;
-extern crate openvpn_plugin;
-extern crate tokio;
-extern crate tokio_reactor;
 
 use error_chain::ChainedError;
 use openvpn_plugin::{openvpn_plugin, EventResult, EventType};
-use std::collections::HashMap;
-use std::ffi::CString;
-use std::sync::Mutex;
+use std::{collections::HashMap, ffi::CString, sync::Mutex};
 
 
 mod processing;

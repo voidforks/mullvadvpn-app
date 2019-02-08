@@ -17,11 +17,11 @@ matrix:
       install: &nodejs_install_script
         - cd gui
         - yarn install
-        - yarn flow-typed install
       before_script: &nodejs_before_script
         - export DISPLAY=:99.0; sh -e /etc/init.d/xvfb start
       script:
         - yarn workspace $WORKSPACE lint
+        - yarn workspace $WORKSPACE build
         - yarn workspace $WORKSPACE test
 
     # GUI - desktop
@@ -33,9 +33,9 @@ matrix:
       install: *nodejs_install_script
       before_script: *nodejs_before_script
       script:
-        - yarn lint
-        - yarn flow
         - yarn check-format
+        - yarn workspace $WORKSPACE lint
+        - yarn workspace $WORKSPACE build
         - yarn workspace $WORKSPACE test
 
 
@@ -47,9 +47,12 @@ matrix:
       before_script: &rust_before_script
         - source env.sh
         - env
+        - du -sh target || true
       script: &rust_script
         - cargo build --verbose
         - cargo test --verbose
+      before_cache: &rust_before_cache
+        - rm -rf target/debug/incremental/
 
     # Daemon - Linux
     - language: rust
@@ -72,6 +75,7 @@ matrix:
         - rustup component add rustfmt-preview
         - cargo fmt --version || true
         - cargo fmt -- --check --unstable-features
+      before_cache: *rust_before_cache
 
     - language: rust
       rust: beta
@@ -80,6 +84,7 @@ matrix:
       cache: cargo
       before_script: *rust_before_script
       script: *rust_script
+      before_cache: *rust_before_cache
 
     - language: rust
       rust: stable
@@ -88,6 +93,7 @@ matrix:
       cache: cargo
       before_script: *rust_before_script
       script: *rust_script
+      before_cache: *rust_before_cache
 
 
 notifications:

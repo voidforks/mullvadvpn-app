@@ -11,7 +11,8 @@ install:
 
 # This is the "test phase", tweak it as you see fit
 test_script:
-  - yarn lint
+  - yarn workspace %WORKSPACE% lint
+  - yarn workspace %WORKSPACE% build
   - yarn workspace %WORKSPACE% test
 
 # Stops feature branches from triggering two builds (One for branch and one for PR)

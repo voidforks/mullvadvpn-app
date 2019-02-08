@@ -23,6 +23,70 @@ Line wrap the file at 100 chars.                                              Th
 
 
 ## [Unreleased]
+
+
+## [2019.1] - 2019-01-29
+This release is identical to 2019.1-beta1
+
+
+## [2019.1-beta1] - 2019-01-25
+### Added
+- Handle "block when disconnected" extra kill-switch level in the GUI, showing the disconnected
+  state as blocked when appropriate and also having a toggle switch for the setting in the Advanced
+  Settings screen.
+- Add a drop-down warning to notify the user when the account credits are running low.
+- Allow the 169.254.0.0/16 private network in addition to the other networks allowed when local
+  network sharing is enabled.
+- Improve the confirmation dialog when submitting a bug report without an email specified.
+
+#### macOS
+- Add a monochromatic tray icon option for the GUI.
+
+#### Linux
+- Detect if the computer is offline. If so, don't sit in a reconnect loop, instead block and show
+  an error message.
+- Add a toggle switch to allow the app to start minimized on Linux, so that only the tray icon is
+  initially visible.
+
+### Changed
+- Disable buttons and menus that open external links when the app knows that there is no internet
+  connection.
+- The auto-start and auto-connect toggles in the GUI have been reworked so that auto-connect
+  configures the GUI to automatically connect when it starts and so that it will only auto-connect
+  on boot when both settings are set.
+
+### Fixed
+- Stop GUI from glitching during the short reconnect state.
+- Dismiss notifications automatically after four seconds in all platforms.
+- Fix error printed from the CLI when issuing `relay update`.
+- Fix relay list update interval. Should now handle sleep better.
+- Prevent GUI from sending connect commands to the daemon every time it establishes a connection to
+  it. Only send connect once (if auto-connect is enabled.)
+- Prevent possible reconnect loop where the GUI would indefinitely reconnect to the daemon.
+- Fix the bug which enabled users to return to the login view if they went to settings while
+  logging in.
+- Handle in the GUI, if something external changes the account token in the daemon. I.e. triggered
+  by CLI unsetting or resetting it.
+
+#### Linux
+- Fix Debian package not upgrading properly due to a bug in the post-remove script.
+- Wait for NetworkManager and systemd-resolved services to start before daemon starts on platforms
+  with systemd and those two services. Prevents the daemon from using the wrong DNS API.
+
+#### Windows
+- Gracefully block when TAP adapter is missing or disabled, instead of retrying to connect.
+
+### Security
+#### Linux
+- Poll netfilter to verify firewall rules were added correctly. On Ubuntu 14.04 netfilter did not
+  return any error, but it also ignored the rules the daemon tried to add.
+
+
+## [2018.6] - 2018-12-12
+This release is identical to 2018.6-beta1
+
+
+## [2018.6-beta1] - 2018-12-05
 ### Added
 - CLI command `relay update` that triggers an update of the relay list in the daemon.
 - Add extra level of kill-switch called "block when disconnected". Blocks all network traffic even
@@ -33,6 +97,9 @@ Line wrap the file at 100 chars.                                              Th
 #### macOS
 - Detect if the computer is offline. If so, don't sit in a reconnect loop, instead block and show
   an error message.
+
+#### Windows
+- Install tray icon in visible part of the notification area.
 
 ### Changed
 - Split DNS management from Firewall management to allow restoring DNS earlier and showing more

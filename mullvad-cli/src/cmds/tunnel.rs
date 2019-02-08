@@ -1,10 +1,8 @@
 use crate::{new_rpc_client, Command, Result};
-use clap::{self, value_t};
+use clap::value_t;
 
-use talpid_types::net::{
-    LocalOpenVpnProxySettings, OpenVpnProxyAuth, OpenVpnProxySettings,
-    OpenVpnProxySettingsValidation, RemoteOpenVpnProxySettings, TunnelOptions,
-};
+use mullvad_types::settings::TunnelOptions;
+use talpid_types::net::openvpn;
 
 use std::net::{IpAddr, SocketAddr};
 
@@ -20,18 +18,53 @@ impl Command for Tunnel {
             .about("Manage tunnel specific options")
             .setting(clap::AppSettings::SubcommandRequired)
             .subcommand(create_openvpn_subcommand())
+            .subcommand(create_wireguard_subcommand())
             .subcommand(create_ipv6_subcommand())
     }
 
     fn run(&self, matches: &clap::ArgMatches) -> Result<()> {
-        if let Some(openvpn_matches) = matches.subcommand_matches("openvpn") {
-            Self::handle_openvpn_cmd(openvpn_matches)
-        } else if let Some(ipv6_matches) = matches.subcommand_matches("ipv6") {
-            Self::handle_ipv6_cmd(ipv6_matches)
-        } else {
-            unreachable!("unhandled command");
+        match matches.subcommand() {
+            ("openvpn", Some(openvpn_matches)) => Self::handle_openvpn_cmd(openvpn_matches),
+            ("wireguard", Some(wg_matches)) => Self::handle_wireguard_cmd(wg_matches),
+            ("ipv6", Some(ipv6_matches)) => Self::handle_ipv6_cmd(ipv6_matches),
+            _ => {
+                unreachable!("unhandled comand");
+            }
         }
     }
+}
+
+fn create_wireguard_subcommand() -> clap::App<'static, 'static> {
+    let app = clap::SubCommand::with_name("wireguard")
+        .about("Manage options for Wireguard tunnels")
+        .setting(clap::AppSettings::SubcommandRequired)
+        .subcommand(create_wireguard_mtu_subcommand());
+    if cfg!(target_os = "linux") {
+        app.subcommand(create_wireguard_fwmark_subcommand())
+    } else {
+        app
+    }
+}
+
+fn create_wireguard_mtu_subcommand() -> clap::App<'static, 'static> {
+    clap::SubCommand::with_name("mtu")
+        .about("Configure the MTU of the wireguard tunnel")
+        .setting(clap::AppSettings::SubcommandRequired)
+        .subcommand(clap::SubCommand::with_name("get"))
+        .subcommand(clap::SubCommand::with_name("unset"))
+        .subcommand(
+            clap::SubCommand::with_name("set").arg(clap::Arg::with_name("mtu").required(true)),
+        )
+}
+
+fn create_wireguard_fwmark_subcommand() -> clap::App<'static, 'static> {
+    clap::SubCommand::with_name("fwmark")
+        .about("Configure the firewall mark used to direct traffic through Wireguard tunnel")
+        .setting(clap::AppSettings::SubcommandRequired)
+        .subcommand(clap::SubCommand::with_name("get"))
+        .subcommand(
+            clap::SubCommand::with_name("set").arg(clap::Arg::with_name("fwmark").required(true)),
+        )
 }
 
 fn create_openvpn_subcommand() -> clap::App<'static, 'static> {
@@ -102,11 +135,13 @@ fn create_openvpn_proxy_subcommand() -> clap::App<'static, 'static> {
                         .arg(
                             clap::Arg::with_name("username")
                                 .help("Specifies the username for remote authentication")
+                                .required(true)
                                 .index(3),
                         )
                         .arg(
                             clap::Arg::with_name("password")
                                 .help("Specifies the password for remote authentication")
+                                .required(true)
                                 .index(4),
                         ),
                 ),
@@ -129,41 +164,96 @@ fn create_ipv6_subcommand() -> clap::App<'static, 'static> {
 
 impl Tunnel {
     fn handle_openvpn_cmd(matches: &clap::ArgMatches) -> Result<()> {
-        if let Some(m) = matches.subcommand_matches("mssfix") {
-            Self::handle_openvpn_mssfix_cmd(m)
-        } else if let Some(m) = matches.subcommand_matches("proxy") {
-            Self::handle_openvpn_proxy_cmd(m)
-        } else {
-            unreachable!("unhandled command");
+        match matches.subcommand() {
+            ("mssfix", Some(mssfix_matches)) => Self::handle_openvpn_mssfix_cmd(mssfix_matches),
+            ("proxy", Some(proxy_matches)) => Self::handle_openvpn_proxy_cmd(proxy_matches),
+            _ => unreachable!("unhandled command"),
         }
     }
 
     fn handle_openvpn_mssfix_cmd(matches: &clap::ArgMatches) -> Result<()> {
-        if let Some(_) = matches.subcommand_matches("get") {
-            Self::process_openvpn_mssfix_get()
-        } else if let Some(_) = matches.subcommand_matches("unset") {
-            Self::process_openvpn_mssfix_unset()
-        } else if let Some(m) = matches.subcommand_matches("set") {
-            Self::process_openvpn_mssfix_set(m)
-        } else {
-            unreachable!("unhandled command");
+        match matches.subcommand() {
+            ("get", Some(_)) => Self::process_openvpn_mssfix_get(),
+            ("unset", Some(_)) => Self::process_openvpn_mssfix_unset(),
+            ("set", Some(set_matches)) => Self::process_openvpn_mssfix_set(set_matches),
+            _ => unreachable!("unhandled command"),
         }
     }
 
     fn handle_openvpn_proxy_cmd(matches: &clap::ArgMatches) -> Result<()> {
-        if let Some(_) = matches.subcommand_matches("get") {
-            Self::process_openvpn_proxy_get()
-        } else if let Some(_) = matches.subcommand_matches("unset") {
-            Self::process_openvpn_proxy_unset()
-        } else if let Some(m) = matches.subcommand_matches("set") {
-            Self::process_openvpn_proxy_set(m)
-        } else {
-            unreachable!("unhandled command");
+        match matches.subcommand() {
+            ("get", Some(_)) => Self::process_openvpn_proxy_get(),
+            ("unset", Some(_)) => Self::process_openvpn_proxy_unset(),
+            ("set", Some(set_matches)) => Self::process_openvpn_proxy_set(set_matches),
+            _ => unreachable!("unhandled command"),
         }
     }
 
+    fn handle_wireguard_cmd(matches: &clap::ArgMatches) -> Result<()> {
+        match matches.subcommand() {
+            ("mtu", Some(matches)) => match matches.subcommand() {
+                ("get", _) => Self::process_wireguard_mtu_get(),
+                ("set", Some(matches)) => Self::process_wireguard_mtu_set(matches),
+                ("unset", _) => Self::process_wireguard_mtu_unset(),
+                _ => unreachable!("unhandled command"),
+            },
+
+            #[cfg(target_os = "linux")]
+            ("fwmark", Some(matches)) => match matches.subcommand() {
+                ("get", _) => Self::process_wireguard_fwmark_get(),
+                ("set", Some(fwmark_matches)) => Self::process_wireguard_fwmark_set(fwmark_matches),
+                _ => unreachable!("unhandled command"),
+            },
+            _ => unreachable!("unhandled command"),
+        }
+    }
+
+    fn process_wireguard_mtu_get() -> Result<()> {
+        let tunnel_options = Self::get_tunnel_options()?;
+        println!(
+            "mtu: {}",
+            tunnel_options
+                .wireguard
+                .mtu
+                .map(|mtu| mtu.to_string())
+                .unwrap_or("unset".into())
+        );
+        Ok(())
+    }
+
+    fn process_wireguard_mtu_set(matches: &clap::ArgMatches) -> Result<()> {
+        let mtu = value_t!(matches.value_of("mtu"), u16).unwrap_or_else(|e| e.exit());
+        let mut rpc = new_rpc_client()?;
+        rpc.set_wireguard_mtu(Some(mtu))?;
+        println!("Wireguard MTU has been updated");
+        Ok(())
+    }
+
+    fn process_wireguard_mtu_unset() -> Result<()> {
+        let mut rpc = new_rpc_client()?;
+        rpc.set_wireguard_mtu(None)?;
+        println!("Wireguard MTU has been unset");
+        Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    fn process_wireguard_fwmark_get() -> Result<()> {
+        let tunnel_options = Self::get_tunnel_options()?;
+        println!("fwmark: {}", tunnel_options.wireguard.fwmark);
+        Ok(())
+    }
+
+    #[cfg(target_os = "linux")]
+    fn process_wireguard_fwmark_set(matches: &clap::ArgMatches) -> Result<()> {
+        let fwmark = value_t!(matches.value_of("fwmark"), i32).unwrap_or_else(|e| e.exit());
+        let mut rpc = new_rpc_client()?;
+        rpc.set_wireguard_fwmark(fwmark)?;
+        println!("Firewall mark parameter has been updated");
+        Ok(())
+    }
+
     fn handle_ipv6_cmd(matches: &clap::ArgMatches) -> Result<()> {
-        if let Some(_) = matches.subcommand_matches("get") {
+        if matches.subcommand_matches("get").is_some() {
             Self::process_ipv6_get()
         } else if let Some(m) = matches.subcommand_matches("set") {
             Self::process_ipv6_set(m)
@@ -207,9 +297,9 @@ impl Tunnel {
     fn process_openvpn_proxy_get() -> Result<()> {
         let tunnel_options = Self::get_tunnel_options()?;
         if let Some(proxy) = tunnel_options.openvpn.proxy {
-            if let OpenVpnProxySettings::Local(local_proxy) = proxy {
+            if let openvpn::ProxySettings::Local(local_proxy) = proxy {
                 Self::print_local_proxy(&local_proxy)
-            } else if let OpenVpnProxySettings::Remote(remote_proxy) = proxy {
+            } else if let openvpn::ProxySettings::Remote(remote_proxy) = proxy {
                 Self::print_remote_proxy(&remote_proxy)
             } else {
                 unreachable!("unhandled proxy type");
@@ -220,14 +310,14 @@ impl Tunnel {
         Ok(())
     }
 
-    fn print_local_proxy(proxy: &LocalOpenVpnProxySettings) {
+    fn print_local_proxy(proxy: &openvpn::LocalProxySettings) {
         println!("proxy: local");
         println!("  local port: {}", proxy.port);
         println!("  peer IP: {}", proxy.peer.ip());
         println!("  peer port: {}", proxy.peer.port());
     }
 
-    fn print_remote_proxy(proxy: &RemoteOpenVpnProxySettings) {
+    fn print_remote_proxy(proxy: &openvpn::RemoteProxySettings) {
         println!("proxy: remote");
         println!("  server IP: {}", proxy.address.ip());
         println!("  server port: {}", proxy.address.port());
@@ -256,14 +346,14 @@ impl Tunnel {
             let remote_port =
                 value_t!(args.value_of("remote-port"), u16).unwrap_or_else(|e| e.exit());
 
-            let proxy = LocalOpenVpnProxySettings {
+            let proxy = openvpn::LocalProxySettings {
                 port: local_port,
                 peer: SocketAddr::new(remote_ip, remote_port),
             };
 
-            let packed_proxy = OpenVpnProxySettings::Local(proxy);
+            let packed_proxy = openvpn::ProxySettings::Local(proxy);
 
-            if let Err(error) = OpenVpnProxySettingsValidation::validate(&packed_proxy) {
+            if let Err(error) = openvpn::ProxySettingsValidation::validate(&packed_proxy) {
                 panic!(error);
             }
 
@@ -278,21 +368,21 @@ impl Tunnel {
             let password = args.value_of("password");
 
             let auth = match (username, password) {
-                (Some(username), Some(password)) => Some(OpenVpnProxyAuth {
+                (Some(username), Some(password)) => Some(openvpn::ProxyAuth {
                     username: username.to_string(),
                     password: password.to_string(),
                 }),
                 _ => None,
             };
 
-            let proxy = RemoteOpenVpnProxySettings {
+            let proxy = openvpn::RemoteProxySettings {
                 address: SocketAddr::new(remote_ip, remote_port),
                 auth,
             };
 
-            let packed_proxy = OpenVpnProxySettings::Remote(proxy);
+            let packed_proxy = openvpn::ProxySettings::Remote(proxy);
 
-            if let Err(error) = OpenVpnProxySettingsValidation::validate(&packed_proxy) {
+            if let Err(error) = openvpn::ProxySettingsValidation::validate(&packed_proxy) {
                 panic!(error);
             }
 
@@ -311,7 +401,7 @@ impl Tunnel {
         let tunnel_options = Self::get_tunnel_options()?;
         println!(
             "IPv6: {}",
-            if tunnel_options.enable_ipv6 {
+            if tunnel_options.generic.enable_ipv6 {
                 "on"
             } else {
                 "off"

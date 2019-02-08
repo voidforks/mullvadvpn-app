@@ -1,8 +1,13 @@
 use crate::account_history::{AccountHistory, Error as AccountHistoryError};
 use error_chain::ChainedError;
-use jsonrpc_core::futures::sync::oneshot::Sender as OneshotSender;
-use jsonrpc_core::futures::{future, sync, Future};
-use jsonrpc_core::{Error, ErrorCode, MetaIoHandler, Metadata};
+use jsonrpc_core::{
+    futures::{
+        future,
+        sync::{self, oneshot::Sender as OneshotSender},
+        Future,
+    },
+    Error, ErrorCode, MetaIoHandler, Metadata,
+};
 use jsonrpc_ipc_server;
 use jsonrpc_macros::{build_rpc_trait, metadata, pubsub};
 use jsonrpc_pubsub::{PubSubHandler, PubSubMetadata, Session, SubscriptionId};
@@ -25,7 +30,7 @@ use std::{
 };
 use talpid_core::mpsc::IntoSender;
 use talpid_ipc;
-use talpid_types::{net::OpenVpnProxySettings, tunnel::TunnelStateTransition};
+use talpid_types::{net::openvpn, tunnel::TunnelStateTransition};
 use uuid;
 
 /// FIXME(linus): This is here just because the futures crate has deprecated it and jsonrpc_core
@@ -90,7 +95,7 @@ build_rpc_trait! {
         /// Performs a geoIP lookup and returns the current location as perceived by the public
         /// internet.
         #[rpc(meta, name = "get_current_location")]
-        fn get_current_location(&self, Self::Metadata) -> BoxFuture<GeoIpLocation, Error>;
+        fn get_current_location(&self, Self::Metadata) -> BoxFuture<Option<GeoIpLocation>, Error>;
 
         /// Makes the daemon exit its main loop and quit.
         #[rpc(meta, name = "shutdown")]
@@ -110,11 +115,19 @@ build_rpc_trait! {
 
         /// Sets proxy details for OpenVPN
         #[rpc(meta, name = "set_openvpn_proxy")]
-        fn set_openvpn_proxy(&self, Self::Metadata, Option<OpenVpnProxySettings>) -> BoxFuture<(), Error>;
+        fn set_openvpn_proxy(&self, Self::Metadata, Option<openvpn::ProxySettings>) -> BoxFuture<(), Error>;
 
         /// Set if IPv6 is enabled in the tunnel
         #[rpc(meta, name = "set_enable_ipv6")]
         fn set_enable_ipv6(&self, Self::Metadata, bool) -> BoxFuture<(), Error>;
+
+        /// Set firewall marker for wireguard tunnels on Linux
+        #[rpc(meta, name = "set_wireguard_fwmark")]
+        fn set_wireguard_fwmark(&self, Self::Metadata, i32) -> BoxFuture<(), Error>;
+
+        /// Set MTU for wireguard tunnels
+        #[rpc(meta, name = "set_wireguard_mtu")]
+        fn set_wireguard_mtu(&self, Self::Metadata, Option<u16>) -> BoxFuture<(), Error>;
 
         /// Returns the current daemon settings
         #[rpc(meta, name = "get_settings")]
@@ -163,7 +176,7 @@ pub enum ManagementCommand {
     /// Request the current state.
     GetState(OneshotSender<TunnelStateTransition>),
     /// Get the current geographical location.
-    GetCurrentLocation(OneshotSender<GeoIpLocation>),
+    GetCurrentLocation(OneshotSender<Option<GeoIpLocation>>),
     /// Request the metadata for an account.
     GetAccountData(
         OneshotSender<BoxFuture<AccountData, mullvad_rpc::Error>>,
@@ -189,10 +202,15 @@ pub enum ManagementCommand {
     /// Set proxy details for OpenVPN
     SetOpenVpnProxy(
         OneshotSender<Result<(), settings::Error>>,
-        Option<OpenVpnProxySettings>,
+        Option<openvpn::ProxySettings>,
     ),
     /// Set if IPv6 should be enabled in the tunnel
     SetEnableIpv6(OneshotSender<()>, bool),
+    #[cfg(target_os = "linux")]
+    /// Set wireguard firewall mark
+    SetWireguardFwmark(OneshotSender<()>, i32),
+    /// Set MTU for wireguard tunnels
+    SetWireguardMtu(OneshotSender<()>, Option<u16>),
     /// Get the daemon settings
     GetSettings(OneshotSender<Settings>),
     /// Get information about the currently running and latest app versions
@@ -524,7 +542,7 @@ impl<T: From<ManagementCommand> + 'static + Send> ManagementInterfaceApi
         Box::new(future)
     }
 
-    fn get_current_location(&self, _: Self::Metadata) -> BoxFuture<GeoIpLocation, Error> {
+    fn get_current_location(&self, _: Self::Metadata) -> BoxFuture<Option<GeoIpLocation>, Error> {
         log::debug!("get_current_location");
         let (tx, rx) = sync::oneshot::channel();
         let future = self
@@ -582,7 +600,7 @@ impl<T: From<ManagementCommand> + 'static + Send> ManagementInterfaceApi
     fn set_openvpn_proxy(
         &self,
         _: Self::Metadata,
-        proxy: Option<OpenVpnProxySettings>,
+        proxy: Option<openvpn::ProxySettings>,
     ) -> BoxFuture<(), Error> {
         log::debug!("set_openvpn_proxy({:?})", proxy);
         let (tx, rx) = sync::oneshot::channel();
@@ -608,6 +626,34 @@ impl<T: From<ManagementCommand> + 'static + Send> ManagementInterfaceApi
             .send_command_to_daemon(ManagementCommand::SetEnableIpv6(tx, enable_ipv6))
             .and_then(|_| rx.map_err(|_| Error::internal_error()));
 
+        Box::new(future)
+    }
+
+    /// Set firewall marker for wireguard tunnels on Linux
+    fn set_wireguard_fwmark(&self, _: Self::Metadata, fwmark: i32) -> BoxFuture<(), Error> {
+        #[cfg(target_os = "linux")]
+        {
+            log::debug!("set_wireguard_fwmark({:?})", fwmark);
+            let (tx, rx) = sync::oneshot::channel();
+            let future = self
+                .send_command_to_daemon(ManagementCommand::SetWireguardFwmark(tx, fwmark))
+                .and_then(|_| rx.map_err(|_| Error::internal_error()));
+
+            Box::new(future)
+        }
+        #[cfg(any(windows, target_os = "macos"))]
+        {
+            return Box::new(future::err(Error::method_not_found()));
+        }
+    }
+
+    /// Set MTU for wireguard tunnels
+    fn set_wireguard_mtu(&self, _: Self::Metadata, mtu: Option<u16>) -> BoxFuture<(), Error> {
+        log::debug!("set_wireguard_mtu({:?})", mtu);
+        let (tx, rx) = sync::oneshot::channel();
+        let future = self
+            .send_command_to_daemon(ManagementCommand::SetWireguardMtu(tx, mtu))
+            .and_then(|_| rx.map_err(|_| Error::internal_error()));
         Box::new(future)
     }
 

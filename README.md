@@ -57,13 +57,22 @@ The host has to have the following installed:
 
 ### Linux
 
-For Debian/Ubuntu based distributions, you need to install the following. For other distributions
-you need the equivalent packages:
+#### Debian/Ubuntu
 ```bash
 # For building the daemon
 sudo apt install gcc libdbus-1-dev
 # For running the frontend app
-sudo apt install libappindicator1 gconf2
+sudo apt install gconf2
+# For building the installer
+sudo apt install rpm
+```
+
+#### Fedora/RHEL
+```bash
+# For building the daemon
+sudo dnf install dbus-devel
+# For building the installer
+sudo dnf install rpm-build
 ```
 
 ### All platforms
@@ -234,7 +243,6 @@ this procedure, the `integration-tests.sh` script can be used to run all integra
 ## Command line tools for Electron GUI app development
 
 - `$ yarn workspace desktop develop` - develop app with live-reload enabled
-- `$ yarn flow` - type-check the code
 - `$ yarn lint` - lint code
 - `$ yarn pack:<OS>` - prepare app for distribution for your platform. Where `<OS>` can be
   `linux`, `mac` or `win`
@@ -358,6 +366,17 @@ environment variable.
 | Linux | `/var/run/mullvad-vpn` |
 | macOS | `/var/run/mullvad-vpn` |
 | Windows | `//./pipe/Mullvad VPN` |
+
+### GUI
+
+The GUI has a specific settings file that is configured for each user. The path is set in the
+`gui/packages/desktop/main/gui-settings.js` file.
+
+| Platform | Path |
+|----------|------|
+| Linux | `$XDG_CONFIG_HOME/Mullvad VPN/gui_settings.json` |
+| macOS | `~/Library/Application Support/Mullvad VPN/gui_settings.json` |
+| Windows | `%LOCALAPPDATA%\Mullvad VPN\gui_settings.json` |
 
 ## Audits, pentests and external security reviews
 

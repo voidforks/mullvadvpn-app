@@ -7,34 +7,35 @@ mod connecting_state;
 mod disconnected_state;
 mod disconnecting_state;
 
-use std::path::{Path, PathBuf};
-use std::sync::mpsc as sync_mpsc;
-use std::thread;
+use std::{
+    path::{Path, PathBuf},
+    sync::mpsc as sync_mpsc,
+    thread,
+};
 
 use error_chain::ChainedError;
-use futures::sync::mpsc;
-use futures::{Async, Future, Poll, Stream};
+use futures::{sync::mpsc, Async, Future, Poll, Stream};
 use tokio_core::reactor::Core;
 
-use talpid_types::net::{TunnelEndpoint, TunnelOptions};
-use talpid_types::tunnel::{BlockReason, TunnelStateTransition};
-
-use self::blocked_state::BlockedState;
-use self::connected_state::{ConnectedState, ConnectedStateBootstrap};
-use self::connecting_state::ConnectingState;
-use self::disconnected_state::DisconnectedState;
-use self::disconnecting_state::{AfterDisconnect, DisconnectingState};
-use crate::{
-    mpsc::IntoSender,
-    offline,
-    security::{DnsMonitor, NetworkSecurity},
+use talpid_types::{
+    net::TunnelParameters,
+    tunnel::{BlockReason, TunnelStateTransition},
 };
+
+use self::{
+    blocked_state::BlockedState,
+    connected_state::{ConnectedState, ConnectedStateBootstrap},
+    connecting_state::ConnectingState,
+    disconnected_state::DisconnectedState,
+    disconnecting_state::{AfterDisconnect, DisconnectingState},
+};
+use crate::{dns::DnsMonitor, firewall::Firewall, mpsc::IntoSender, offline};
 
 error_chain! {
     errors {
         /// An error occurred while setting up the network security.
-        NetworkSecurityError {
-            description("Network security error")
+        FirewallError {
+            description("Firewall error")
         }
         /// Unable to start the DNS settings monitor and enforcer.
         DnsMonitorError {
@@ -157,17 +158,6 @@ pub enum TunnelCommand {
     Block(BlockReason),
 }
 
-/// Information necessary to open a tunnel.
-#[derive(Debug, PartialEq)]
-pub struct TunnelParameters {
-    /// Tunnel enpoint to connect to.
-    pub endpoint: TunnelEndpoint,
-    /// Tunnel connection options.
-    pub options: TunnelOptions,
-    /// Username to use for setting up the tunnel.
-    pub username: String,
-}
-
 /// Asynchronous handling of the tunnel state machine.
 ///
 /// This type implements `Stream`, and attempts to advance the state machine based on the events
@@ -191,10 +181,10 @@ impl TunnelStateMachine {
         cache_dir: impl AsRef<Path>,
         commands: mpsc::UnboundedReceiver<TunnelCommand>,
     ) -> Result<Self> {
-        let security = NetworkSecurity::new().chain_err(|| ErrorKind::NetworkSecurityError)?;
+        let firewall = Firewall::new().chain_err(|| ErrorKind::FirewallError)?;
         let dns_monitor = DnsMonitor::new(cache_dir).chain_err(|| ErrorKind::DnsMonitorError)?;
         let mut shared_values = SharedTunnelStateValues {
-            security,
+            firewall,
             dns_monitor,
             allow_lan,
             block_when_disconnected,
@@ -249,8 +239,7 @@ enum TunnelStateMachineAction {
 
 impl<T: TunnelState> From<EventConsequence<T>> for TunnelStateMachineAction {
     fn from(event_consequence: EventConsequence<T>) -> Self {
-        use self::EventConsequence::*;
-        use self::TunnelStateMachineAction::*;
+        use self::{EventConsequence::*, TunnelStateMachineAction::*};
 
         match event_consequence {
             NewState((state_wrapper, transition)) => {
@@ -273,7 +262,7 @@ pub trait TunnelParametersGenerator: Send + 'static {
 
 /// Values that are common to all tunnel states.
 struct SharedTunnelStateValues {
-    security: NetworkSecurity,
+    firewall: Firewall,
     dns_monitor: DnsMonitor,
     /// Should LAN access be allowed outside the tunnel.
     allow_lan: bool,
